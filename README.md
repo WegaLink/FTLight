@@ -30,7 +30,7 @@ Unified data types
 The FTLight specification assigns general data types like for example text, numeric or binary to any information element. An application will benefit from a type conversion to any of the known e.g. byte, word, double word, signed and unsigned programming data types.
 
 Unified addresses
-Universally Unique Resource Identifiers (UURI) are used for addressing the top element of a hierarchiccal FTLight information structure. This makes all data items in those structures universally unique. This applies not only on Earth but also when going into space for example when exchanging data with a space probe on the Moon or on Mars.
+Universally Unique Resource Identifiers (UURI) are used for addressing the top element of a hierarchical FTLight information structure. This makes all data items in those structures universally unique. This applies not only on Earth but also when going into space for example when exchanging data with a space probe on the Moon or on Mars.
 
 Concurrency
 This is supported by having one background process pre-defined in each program module that is derived from a base "PlugNode" module.

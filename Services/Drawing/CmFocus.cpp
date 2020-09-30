@@ -161,7 +161,7 @@ bool CmFocus::verifyBaseStatistics()
       return false;
 
     // Allocate a base statistics array
-    BaseStatistics = new CmFocusBaseStatistics[IntervalCount];
+    BaseStatistics = new CmFocusBaseStatistics[size_t(IntervalCount)];
 
     // Check if a base statistics array was successfully allocated
     if( !BaseStatistics )

@@ -54,7 +54,7 @@ CmUURI::~CmUURI()
 bool CmUURI::isUURI(const int8 * _UURI)
 {
 	CmString UURI(_UURI);
-	return isUURI(UURI);
+	return NULL == _UURI ? true : isUURI(UURI);
 }
 bool CmUURI::isUURI(CmString& _UURI)
 {
@@ -1460,12 +1460,18 @@ CmString CmString::IP2String(uint32 _IP, uint16 _Port)
 // Search functions
 int32 CmString::findPosition(char _ch, int32 _StartPos)
 {
+	// handle empty text field
+	if (NULL == pText){
+		Length = 0;
+	}
+	else{
   // Search for a given character starting at a determined position
   for( int32 i = _StartPos; i < (int32)Length; i++ )
   {
     if( *(pText + i) == _ch )
     return i;
   }
+	}
   
   // Not found
   return (int32)Length + 1;

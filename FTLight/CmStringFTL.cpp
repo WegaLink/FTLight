@@ -113,57 +113,60 @@ CmStringFTL::~CmStringFTL()
 // unit test for CmStringFTL
 bool CmStringFTL::testCmStringFTL()
 {
+	// define test parameters
 #define BIN_LEN   1421507
+#define BIN_LEN_MCL (16 * BIN_LEN / 15)
 #define STR_LEN   30
 	CmString Memory;
 	uint8* pField = Memory.allocateMemory<uint8>(BIN_LEN + 1, isUint8);
 	uint8* pField1 = Memory.allocateMemory<uint8>(BIN_LEN + 1, isUint8);
-	uint16* pBinMCL = Memory.allocateMemory<uint16>(16 * BIN_LEN / 15, isUint16);
+	uint16* pBinMCL = Memory.allocateMemory<uint16>(BIN_LEN_MCL/2, isUint16);
 	CmString mBinX;
 	CmString mBinX1(STR_LEN);
 	CmString mBinX2(STR_LEN);
 
-	//printf("\nTesting BinX conversion\n");
+	// generate test input 
 	for (int i = 0; i<BIN_LEN; i++){
 		pField[i] = (uint8)(i * 43);
 	}
 
+	//------test-BinX-------------------------
+
 	// Convert binary to a BinX string
 	bin2BinX(&mBinX, pField, BIN_LEN);
-	MEMCPY(mBinX1.getBuffer(), mBinX1.getLength(), mBinX.getBuffer(), STR_LEN);
-	MEMCPY(mBinX2.getBuffer(), mBinX2.getLength(), mBinX.getBuffer() + mBinX.getLength() - STR_LEN, STR_LEN);
 
 	// Convert a BinX string to binary
 	BinX2bin(pField1, BIN_LEN, mBinX);
 
 	// Compare
-	if (0 == memcmp(pField, pField1, BIN_LEN)){
-		//printf("BinX conversion successful for %u bytes.\n", BIN_LEN);
-	}
-	else{
-		printf("BinX (%3d): \"%s.....%s\"", (int32)mBinX.getLength(), mBinX1.getBuffer(), mBinX2.getBuffer());
+	if (0 != memcmp(pField, pField1, BIN_LEN)){
+		// show first and last positions of the BinX field
+		MEMCPY(mBinX1.getBuffer(), mBinX1.getLength(), mBinX.getBuffer(), STR_LEN);
+		MEMCPY(mBinX2.getBuffer(), mBinX2.getLength(), mBinX.getBuffer() + mBinX.getLength() - STR_LEN, STR_LEN);
+		printf("\n BinX (%3d): \"%s.....%s\"", (int32)mBinX.getLength(), mBinX1.getBuffer(), mBinX2.getBuffer());
 		printf("\nBinX conversion ---FAILED---\n");
 		return false;
 	}
 
-	// ToDo: fix BinMCL2bin test
+	//------test-BinMCL-----------------------
 
-	//// Convert binary to a BinMCL string
-	//bin2BinMCL(BIN_LEN/30,(uint16*)pField,pBinMCL);
-	//MEMCPY(mBinX1.getBuffer(),mBinX1.getLength(),(char*)pBinMCL,STR_LEN);
-	//printf("\nBinMCL: \"%s\"\n",mBinX1.getBuffer());
-	//
-	//// Convert a BinMCL string to binary
-	//BinMCL2bin(BIN_LEN/30,pBinMCL,(uint16*)pField1);
+	// Convert binary to a BinMCL string
+	bin2BinMCL(BIN_LEN/30,(uint16*)pField,pBinMCL);
+	
+	// Convert a BinMCL string to binary
+	BinMCL2bin(BIN_LEN/30,pBinMCL,(uint16*)pField1);
 
-	//// Compare
-	//if (0 == memcmp(pField, pField1, BIN_LEN - BIN_LEN % 2)){
-	//	printf("\nBinMCL conversion successful for %u bytes.", BIN_LEN);
-	//}
-	//else{
-	//	printf("\n\nBinMCL conversion ---FAILED---");
-	//	return false;
-	//}
+	// Compare
+	if (0 != memcmp(pField, pField1, BIN_LEN - BIN_LEN % 2)){
+		// show first and last positions of the BinMCL field
+		MEMCPY(mBinX1.getBuffer(), mBinX1.getLength(), (char*)pBinMCL, STR_LEN);
+		MEMCPY(mBinX2.getBuffer(), mBinX2.getLength(), (char*)pBinMCL + BIN_LEN_MCL - STR_LEN, STR_LEN);
+		printf("\n BinMCL (%3d): \"%s.....%s\"", (int32)mBinX.getLength(), mBinX1.getBuffer(), mBinX2.getBuffer());
+		printf("\n BinMCL conversion ---FAILED---");
+		return false;
+	}
+
+	//------test-BinX2num/num2BinX--------------------
 
 	// Convert numeric value
 	uint64 u64Num = 85;
@@ -187,9 +190,12 @@ bool CmStringFTL::testCmStringFTL()
 				u64Num1 = BinX2num(mBinX);
 			}
 		}
-		//printf("Numeric conversion (%20I64u): %9s len=%u (%20I64u) %s\n",	u64Num, mBinX.getBuffer(), (int32)mBinX.getLength(), u64Num1, u64Num == u64Num1 ? "OK" : "failed");
+		u64Num != u64Num1 ? printf("Numeric conversion (%20I64u): %9s len=%u (%20I64u) %s\n", u64Num, mBinX.getBuffer(), (int32)mBinX.getLength(), u64Num1, "failed") : 0;
 		u64Factor *= RADIX_216;
 	}
+
+	//-------conversion-benchmarks-------------------------
+
 	MBenchmark   mBenchmark(3);
 	try{
 		while (mBenchmark.run()){
@@ -198,7 +204,6 @@ bool CmStringFTL::testCmStringFTL()
 		printf("\n bin2BinX   / Byte: %s", mBenchmark.info(850, BIN_LEN).getText());
 	}
 	catch (CmException E){
-		//throw CmException(E.getMessage(),"Dump");
 		return false;
 	}
 	try{
@@ -208,7 +213,6 @@ bool CmStringFTL::testCmStringFTL()
 		printf("\n bin2BinMCL / Byte: %s", mBenchmark.info(850, BIN_LEN).getText());
 	}
 	catch (CmException E){
-		//throw CmException(E.getMessage(),"Dump");
 		return false;
 	}
 	// cleanup resources
@@ -218,6 +222,8 @@ bool CmStringFTL::testCmStringFTL()
 		Memory.releaseMemory<uint8>(pField1, BIN_LEN + 1, isUint8);
 	if (NULL != pBinMCL)
 		Memory.releaseMemory<uint16>(pBinMCL, 16 * BIN_LEN / 15, isUint16);
+
+	//------test-TextX------------------------
 
 	// test strings containing all special characters
 	//const int8* SpecialCharacters = "Test\n\r,-:;=@`\x7F\\end";
@@ -531,7 +537,7 @@ bool CmStringFTL::isConversionTable()
 		if (NULL == (BinXconvert = Memory.allocateMemory<uint16>(BinXconvertSize, isUint16))) return false;
 		// fill conversion table
 		for (int32 i = 0; i < BinXconvertSize; i++){
-			*(BinXconvert + i) = (uint8)(256 * bcode((uint8)(i / 216)) + bcode((uint8)(i % 216)));
+			*(BinXconvert + i) = 256 * bcode((uint8)(i / 216)) + bcode((uint8)(i % 216));
 		}
 	}
 	return true;
@@ -4182,8 +4188,9 @@ bool CmMatrixFTL::setValue(double _Value, CmIndex& _Index)
 }
 bool CmMatrixFTL::setValue(void* _Value, CmIndex& _Index)
 {
+	uint64 Pointer = uint64(_Value);
 	CmMatrixFTL* MatrixFTL = getLastLevel(_Index.reset());
-	return NULL == MatrixFTL ? false : MatrixFTL->setValue(*((uint64*)&_Value), DATAFORMAT_BINARY, _Index);
+	return NULL == MatrixFTL ? false : MatrixFTL->setValue(*((uint64*)&Pointer), DATAFORMAT_BINARY, _Index);
 }
 bool CmMatrixFTL::setString(const CmString& _String, CmIndex& _Index)
 {

@@ -1,4 +1,6 @@
-/Apps/AppCm/AppCm.VS2013/*.sdf
-/Apps/AppCm/AppCm.VS2013/InfoNet/x64
-/Apps/AppCm/AppCm.VS2013/InfoNet/Debug
-/Apps/AppCm/AppCm.VS2013/InfoNet/Release
+/Apps/AppCm.VS2013/*.sdf
+/Apps/AppCm.VS2013/AppCm/x64
+/Apps/AppCm.VS2013/AppCm/Debug
+/Apps/AppCm.VS2013/AppCm/Release
+/Apps/Runtime/AppCm.pdb
+/Apps/Runtime/x86/AppCm.pdb

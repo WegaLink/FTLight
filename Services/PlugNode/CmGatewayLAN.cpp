@@ -149,7 +149,7 @@ bool PROVIDER_CmGatewayTCP::findGateway(const CmUURI& /*_ServiceUURI*/, CmConnec
 
 bool PROVIDER_CmGatewayTCP::sendInfoToGateway(CmString& _Info, CmConnectionInfo& _GatewayInfo)
 {
-	GatewayConnectionLock.enterSerialize(4);
+	GatewayConnectionLock.enterSerialize(CMLOCKID_SERVICE_CmGateway_sendInfoToGateway);
 
 	// check whether a connection exists
 	CmGatewayConnection *GatewayConnection = GatewayConnections;

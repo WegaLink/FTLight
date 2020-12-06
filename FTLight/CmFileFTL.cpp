@@ -35,7 +35,7 @@ SOFTWARE.
 // Initialize FTLight hierarchy structures
 #ifdef INIT_FTLight
 
-#define FTLIGHT_TEST_ROOT					"C:\\_FTLightTest"
+#define FTLIGHT_TEST_ROOT			"C:\\_FTLightTest"
 #define FTLIGHT_TEST_IDENTIFIER		"ekd@JN58nc_Türkenfeld.FTLightTest"
 #define FTLIGHT_TEST_FILENAME 		"sample.csv"
 #define FTLIGHT_TEST_FILEPERIOD		(10*60)
@@ -43,12 +43,12 @@ SOFTWARE.
 // Initialize time period hierarchy
 static struct stTimePeriodHierarchy TimePeriodHierarchy[] = {
 	{  MAX_INT32, "%u",       "%u"        },
-	{  MAX_INT32, "-%u",      "-%02u"	    },
-	{   24*60*60, "%uth",     "-%02u"	    },		// one file per day
+	{  MAX_INT32, "-%u",      "-%02u"	  },
+	{   24*60*60, "%uth",     "-%02u"	  },		// one file per day
 	{ 	   60*60, "utc%02uh", "_utc%02uh" },		// one file per hour
-	{ 	      60, "%02um",    "%02um"	    },		// one file per minute
-	{ 	 			 1, "%02us",    "%02us"	    },		// one file per second
-	{	   	     0, "",         "(%u)"      },		// one file for each data chunk
+	{ 	      60, "%02um",    "%02um"	  },		// one file per minute
+	{ 	 	   1, "%02us",    "%02us"	  },		// one file per second
+	{	   	   0, "",         "(%u)"      },		// one file for each data chunk
 };
 // Initialize months and days tables
 char* MonthsShortcut[] = { "0", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
@@ -72,7 +72,7 @@ static struct stInitFTLight InitFTLight[] = {
     {     0, TB_EARTH, TIME DAY*3     ,        "%uxx",  10, F_C   }, // 1 century (~12175 * 3*DAY)
     {     0, TB_EARTH, TIME HOUR*8    ,         "%ux",  10, F_D   }, // 1 decade (~10958 * 8*HOUR)
     {     0, TB_EARTH, TIME HOUR      ,          "%u",   0, F_Y   }, // 1 year (~8766 * HOUR)
-    {     0, TB_EARTH, TIME MINUTE*5  ,     "%s-%02u",   0, F_SU  }, // 1 month (~8640 * 5*MINUTE)
+    {     0, TB_EARTH, TIME MINUTE*59 ,     "%s-%02u",   0, F_SU  }, // 1 month (~8640 * 5*MINUTE)
     {  8640, TB_EARTH, TIME SECOND*10 ,     "%s-%02u",   0, F_SU  }, // 1 day
     { 14400, TB_EARTH, TIME MILLI*250 ,    "%s %02uh",   0, F_SU  }, // 1 hour
     { 12000, TB_EARTH, TIME MILLI*25  ,     "%s%02um", -30, F_5M  }, // 5 minutes
@@ -165,19 +165,19 @@ bool CmFileFTL::testFileFTL()
 	// adjust identifier from FTLight information
 	CmValueINI LogLevel;	// only LogLevel used, message and context are ignored
 	LogLevel = CMLOG_Info;
-	CmString DefaultInfo(DEFAULT_Info_FileFTL);
-	Info.UURI.updateInformation(DefaultInfo, LogLevel);
+
+	Info.UURI.updateInformation(*Info.UURI.StringINI, LogLevel);
 	if (false == setupUURI(Info.UURI)) return false;
 	 
 	// generate a data set
 	const int32 Loops = 3;
-	const int32 Columns = 3;
-	const int32 Count = 5;
+	const int32 Columns = 5;
+	const int32 Count = 7;
 	uint64 Timestamp;
 
 	// set header
 	CmStringFTL InfoStringFTL;
-	InfoStringFTL.processStringFTL(DEFAULT_Info_FileFTL);
+	InfoStringFTL.processStringFTL(*Info.UURI.StringINI);
 	Info.UURI.syncSettings(InfoStringFTL);
 	if (false == setupHeader(Info.Data, InfoStringFTL)) return false;
 
@@ -201,12 +201,12 @@ bool CmFileFTL::testFileFTL()
 
 	// fill matrix with values
 	double Value;
-	for (int32 l = 0; l < Loops; l++){
+	for (int32 loop = 0; loop < Loops; loop++){
 		// new header
-		if (l > 0 && (l % 2 == 0)){
+		if (loop > 0 && (loop % 2 == 0)){
 			CmString NewItem = "Item-";
-			NewItem += l;
-			Info.TestItem.setText(NewItem);
+			NewItem += loop;
+			Info.Header.setText(NewItem);
 			Info.UURI.syncSettings(InfoStringFTL);
 			if (false == setupHeader(Info.Data, InfoStringFTL)) return false;
 		}
@@ -222,9 +222,133 @@ bool CmFileFTL::testFileFTL()
 		}
 		// write data to disk
 		if (false == writeData(Info.Data)) return false;
-		// clear Matrix@Info_FTLight
-		M.clearMatrix();
+		// clear matrix
+		M().clearMatrix();
 	}
+
+	// remove conversion tables
+	T.clearConversionTable();
+
+	// clear config variables
+	Info.UURI.clearConfig();
+
+	return true;
+}
+
+bool CmFileFTL::putFTLightData(CmValueINI& _UURI, CmValueINI& /*_Return*/)
+{
+	// Data:::vector of U matrices with UURI strings at position [`]
+	// U:::array of C columns with M measure values, [`] = UURI, [c] = base value/format descriptor, [0, m] = timestamp, [c, m] = measure values
+	//       management: [0, 0, 0] = header, [0, 0, 1] = begin of period, [0, 0, 2] = end of period
+
+	// find Data item
+	CmValueFTL* Data = &_UURI;
+	while (Data->allValuesFTL(&Data)){
+		if (*Data == "Data") break;
+	}
+	if (NULL == Data) return false; // Data item not found
+
+	// NOTE: going reference-pointer-reference caused the MSVC compiler to ignore the high part of 64-bit values
+	//CmValueFTL& Item = *Data; DEPRECATED!
+
+	// get Data matrix
+	CmMatrix& M = Data->getMatrix();
+	CmValueFTL* ValueFTL;
+
+	// find existing or create a new UURI matrix node
+	//CmMatrix& U = M.findScalarItem(_UURI.getText());
+
+	int32 u;
+	int32 VectorLength = M.getLength();
+	for (u = 0; u < VectorLength; u++){
+		CmString Item = M(u);
+		if (Item == _UURI.getText()) break;
+	}
+	if (u >= VectorLength){
+		// insert new item
+		M(u) = _UURI.getText();
+	}
+
+	// check if the Data matrix has been initialized already
+	if (0 == M(u).getSizeLastLevel()){
+		// check StringINI availability
+		if (NULL == _UURI.StringINI) return false;
+		// initialize Data matrix: put raw values as double to M(u,i)
+		ValueFTL = Data;
+		for (int i = 0; ValueFTL->allValuesFTL(&ValueFTL); i++){
+			double Val;
+			M(u,i) = Val = double(*ValueFTL);
+		}
+		// restore base values
+		CmValueINI Return;
+		_UURI.setDefaultInfoFTL(_UURI, Return);
+		// exchange U(c) by base value(c), estimate and write relative measure value(c) to first data row U(c,0) where c is the channel
+		ValueFTL = Data;
+		for (int c = 0; ValueFTL->allValuesFTL(&ValueFTL); c++){
+			double Value = M(u,c);
+			double Base = ValueFTL->getNumAsDouble();
+			Base == 0 ? Base = 1 : 0;
+			M(u,c) = Base;
+			int64 Val;
+			M(u, c, 0) = Val = int64(Value / Base);
+		}
+		// determine file start and end time based on period
+		double AcquisitionTimestamp = double(M(u, 1, 0)) * double(M(u, 1));
+		int32 IndexPeriod = 2;
+		ValueFTL = _UURI.getConfigValue(IndexPeriod);
+		if (0 != IndexPeriod) return false;
+		double Period = ValueFTL->getNumAsDouble();
+		if (0 == Period) return false;
+		double Val;
+		M(u, 0, 0, 1) = Val = Period * floor(AcquisitionTimestamp / Period);
+		M(u, 0, 0, 2) = Val = Period * (floor(AcquisitionTimestamp / Period) + 1);
+	}
+	else{
+		// check if the acquisition timestamp belongs to current period
+		int32 IndexAcquisition = 2;
+		CmValueFTL* AcquisitionTimestamp = Data->getConfigValue(IndexAcquisition);
+		if (0 != IndexAcquisition) return false;
+		double Timestamp = *AcquisitionTimestamp;
+		if (Timestamp >= double(M(u, 0, 0, 1)) && Timestamp < double(M(u, 0, 0, 2)))
+		{
+			// add new data set to data matrix
+			int32 Index = M(u, 0).getSizeLastLevel();
+			// estimate and write relative measure values(c) to next data row M(u, c,Index)
+			ValueFTL = Data;
+			for (int c = 0; ValueFTL->allValuesFTL(&ValueFTL); c++){
+				double Value = double(*ValueFTL);
+				double Base = M(u, c);
+				int64 Val;
+				M(u, c, Index) = Val = int64(Value / Base);
+			}
+		}
+		else{
+			// write current dataset to disk
+
+			// tbd.
+
+			// clear matrix
+			M(u).clearMatrix();
+			// restore UURI
+			M(u) = _UURI.getText();
+
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+	//// TEST: write data to disk
+	//CmStringFTL DataFTL;
+	//DataFTL.processStringFTL(*_UURI.StringINI);
+	//_UURI.writeInfoFTL("./", DataFTL, _Return);
 
 	return true;
 }
@@ -276,18 +400,18 @@ bool CmFileFTL::initFTLightDir(const CmString& _Location)
 }
 bool CmFileFTL::setFTLightRoot(const int8 *_FTLightRoot)
 {
-	this->FTLightRoot = _FTLightRoot;
+	FTLightRoot = _FTLightRoot;
 
 	return true;
 }
 bool CmFileFTL::setFileName(const int8 *_FileName)
 {
-	this->FileName = _FileName;
+	FileName = _FileName;
 	return true;
 }
 bool CmFileFTL::setFilePeriod(uint32 _FilePeriod)
 {
-	this->FilePeriod = _FilePeriod;
+	FilePeriod = _FilePeriod;
 	return true;
 }
 const char * CmFileFTL::getFTLightroot()
@@ -360,8 +484,6 @@ bool CmFileFTL::writeData(CmValueFTL& _Data)
 			ParentCollection += ";";
 		}
 		ParentCollection += "@\n";
-		// clear header: this will now be done one layer up
-		//D.setString("", I.clear());
 	}
 
 	// add measure data
@@ -522,7 +644,6 @@ bool CmFileFTL::readData(time_t _SampleTime, CmString* _pData)
 			_pData->setLength(uFileSize);
 	}
 	else{
-		//throw CmException("File status not accessible:");
 		return false;
 	}
 	// Get data from file into memory
@@ -667,11 +788,6 @@ bool CmFileFTL::getNextFileFTL(CmStringFTL& _StringFTL)
 	// convert file content to result StringFTL
 	if (false == _StringFTL.processStringFTL(FileFTL)) return false;
 
-	// TEST: write file FTL back to disk
-	//FileFTL.clear();
-	//_StringFTL.serializeStringFTL(FileFTL);
-	//FileFTL.writeBinary("FileFTL.txt");
-
 	return true;
 }
 
@@ -708,16 +824,13 @@ bool CmFileFTL::openTimePeriodFile(time_t _SampleTime, bool _fCreate, int _FileS
 	if (-1 == chdir(FTLightDir.getText())){
 		if (true == _fCreate){
 			if (-1 == MKDIR(FTLightDir.getText(), S_MASK)){
-				//throw (CmException("System error 'mkdir'",errno));
 				return false;
 			}
 			if (-1 == chdir(FTLightDir.getText())){
-				//throw (CmException("System error 'chdir'",errno));
 				return false;
 			}
 		}
 		else{
-			//throw CmException("Folder does not exist",FTLightDir.getText());
 			return false;
 		}
 	}
@@ -728,10 +841,8 @@ bool CmFileFTL::openTimePeriodFile(time_t _SampleTime, bool _fCreate, int _FileS
 	catch (CmException e){
 		// Change back to initial dir
 		if (-1 == chdir(InitialDir.getText())){
-			//throw (CmException("System error 'chdir'",errno));
 			return false;
 		}
-		//throw e;
 		return false;
 	}
 	// Complete file name
@@ -815,7 +926,6 @@ bool CmFileFTL::openTimePeriodFile(time_t _SampleTime, bool _fCreate, int _FileS
 				isNewHeader = false;
 				// Write meta information to file
 				if (-1 == WRITE(data_fd, mMeta.getBuffer(), (int32)mMeta.getLength())){
-					//throw (CmException("System error 'write'",errno));
 					return false;
 				}
 			}
@@ -825,12 +935,10 @@ bool CmFileFTL::openTimePeriodFile(time_t _SampleTime, bool _fCreate, int _FileS
 #ifdef MSVS
 		_sopen_s(&data_fd, Prefix.getText(), O_RDONLY, _SH_DENYWR, 0);
 		if (-1 == data_fd){
-			//throw (CmException("System error '_sopen_s'",errno));
 			return false;
 		}
 #else
 		if (-1 == (data_fd = OPEN(Prefix.getText(), O_RDONLY, 0))){
-			//throw (CmException("File does not exist"));
 			return false;
 		}
 #endif
@@ -843,7 +951,6 @@ bool CmFileFTL::openTimePeriodFile(time_t _SampleTime, bool _fCreate, int _FileS
 		TimeIndex = 0;
 	}
 	// Change back to initial dir
-
 	if (-1 == chdir(InitialDir.getText())){
 		//throw (CmException("System error 'chdir'",errno));
 		return false;
@@ -895,15 +1002,12 @@ bool CmFileFTL::enterSubDirectory(struct stTimePeriodHierarchy* _pTimePeriodHier
 	if (-1==chdir(dir)){
 		if (true==_fCreate){
 			if (-1==MKDIR(dir,S_MASK)){
-				//throw (CmException("System error 'mkdir'",errno));
 				return false;
 			}
 			if (-1==chdir(dir)){
-				//throw (CmException("System error 'chdir'",errno));
 				return false;
 			}
 		}else{
-			//throw CmException("Folder does not exist",_Prefix);
 			return false;
 		}
 	}
@@ -915,10 +1019,9 @@ bool CmFileFTL::enterSubDirectory(struct stTimePeriodHierarchy* _pTimePeriodHier
 }
 CmString* CmFileFTL::getDataVector(uint64 _u64SampleTime, CmString* _pDataVector, FTLight_DATA_TYPE_IDENTIFIER _eFTLightIdentifier)
 {
-	uint32   uFileTimestamp;
-	// not needed?	uint64   u64TimeStamp;
+	uint32    uFileTimestamp;
 	CmString  mTimeStamp;
-	CmString	 mFile;
+	CmString  mFile;
 	CmMString mLine(&mFile, "\r\n");
 	CmMString mCollection(&mLine, ":=");
 	CmMString mItem(&mCollection, ",;");
@@ -959,108 +1062,4 @@ CmString* CmFileFTL::getDataVector(uint64 _u64SampleTime, CmString* _pDataVector
 	}
 	return NULL;
 }
-
-//void CmFileFTL::dumpData(time_t _SampleTime,CmString* _pData,CmString& _mStyle)
-//{
-//	uint32   uCount;
-//	uint64   u64MilliTimeStamp;
-//	CmString  mTimeStamp;
-//	CmString	 mFile;
-//	CmString  mPrefix;
-//	CmString  mNum;
-//	CmString  mBin;
-//	CmString  CmFileFTLVector;
-//	CmMString mLine(&mFile,"\r\n");
-//	CmMString mCollection(&mLine,":=");
-//	CmMString mItem(&mCollection,",;");
-//	// Obtain file content
-//	readData(_SampleTime-_SampleTime%FilePeriod,&mFile);
-//	// Generate header
-//	if (_mStyle=="meta"){
-//		(*_pData) += "\n\rMeta data:\n\r----------\n\r";
-//	}
-//	// Split file into lines
-//	mLine.resetPosition();
-//	while (NULL!=mLine.getNextDelimitedString()){
-//		// Check for BinX type 
-//		if (true == CmStringFTL::isDataTypeIdentifier(mLine, BINX_TIME) ||
-//			true == CmStringFTL::isDataTypeIdentifier(mLine, BINX_VALUE) ||
-//			true == CmStringFTL::isDataTypeIdentifier(mLine, BINX_STRING) ||
-//			true == CmStringFTL::isDataTypeIdentifier(mLine, BINX_BINARY)){
-//			// Proceed to desired timestamp
-//			for(;;){
-//				// Obtain next measurement line
-//			if (NULL!=mLine.getNextDelimitedString()){
-//				mCollection.resetPosition();
-//					// Read complete measurement line
-//				if (NULL!=mCollection.getNextDelimitedString()){
-//					mItem.resetPosition();
-//					// Read timestamp
-//					if (NULL!=mItem.getNextDelimitedString()){
-//							// Check for desired timestamp
-//							if ((uint32)_SampleTime > (uint32)((u64MilliTimeStamp = CmStringFTL::BinX2num(mItem))/1000)){
-//								continue;
-//							}
-//						// Read data vector
-//						if (NULL!=mItem.getNextDelimitedString()){
-//							if (_mStyle=="binx"){
-//									(*_pData) += "\n\rBinX data:\n\r-----------\n\r";
-//							(*_pData) += mItem;
-//							}
-//							mBin.setLength(mItem.getLength());
-//							uCount = CmStringFTL::BinX2bin((uint8*)mBin.getBuffer(), (int32)mBin.getLength(), mItem);
-//							if (_mStyle=="table"){
-//									(*_pData) += "\n\rTable data:\n\r------------\n\r";
-//							}else if (_mStyle=="data"){
-//									(*_pData) += "\n\rData:\n-----\n\r";
-//							}
-//							for (uint32 i=0;i<uCount;i++){
-//								mNum         = i;
-//								if (_mStyle=="table"){
-//								CmFileFTLVector += mNum;
-//								CmFileFTLVector += ",";
-//									mNum         = (uint32)(*((uint8*)(mBin.getBuffer()+i)));
-//								CmFileFTLVector += mNum;
-//										CmFileFTLVector += "\n\r";
-//								}else if (_mStyle=="data"){
-//									mNum         = (uint32)(*((uint8*)(mBin.getBuffer()+i)));
-//									CmFileFTLVector += mNum;
-//									CmFileFTLVector += ",";
-//								}
-//							}
-//							(*_pData) += CmFileFTLVector;
-//								(*_pData) += "\n\rTimestamp: ";
-//								mTimeStamp = u64MilliTimeStamp/1000;
-//							(*_pData) += mTimeStamp;
-//							(*_pData) += ".";
-//								mTimeStamp = u64MilliTimeStamp%1000;
-//							(*_pData) += mTimeStamp;
-//								break;
-//						}
-//					}
-//				}
-//			}
-//				break;
-//			}
-//			return;
-//		}
-//		// Meta data
-//		if (_mStyle=="meta"){
-//		// Adjust path
-//		mCollection.resetPosition();
-//			mPrefix = "";
-//			while (NULL!=mCollection.getNextDelimitedString()){
-//			// Split path into folders
-//			mItem.resetPosition();
-//			while (NULL!=mItem.getNextDelimitedString()){
-//				(*_pData) += mPrefix;
-//				(*_pData) += mItem;
-//					(*_pData) += "\n\r";
-//				mPrefix  += "  ";
-//			}
-//		}
-//	}
-//}
-//	(*_pData) += "\n";
-//}
 

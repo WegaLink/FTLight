@@ -33,7 +33,7 @@ SOFTWARE.
 #ifndef CmChartH
 #define CmChartH
 
-#include "FTLight/CmStringFTL.h"
+#include "FTLight/CmValueFTL.h"
 
 #define CHART_VERSION					"v1.0"
 
@@ -79,8 +79,9 @@ public:
 	bool drawSignal(CmSignalType _SignalType);
 
 public:
-	// a signal curve will be drawn
+	// a signal curve will be drawn respectively phase information be displayed
 	bool drawSignalTest();
+	bool drawSignalTest(double _Phase1, double _Phase2);
 
 public:
 	// signal phase offset [deg]
@@ -129,6 +130,15 @@ struct _ChartProfile {
 	CmValueINI TitleFontSize;
 	CmValueINI TitleFontColor;
 	CmValueINI TitleFontAlpha;
+	// text
+	CmValueINI Text;
+	CmValueINI TextTop;
+	CmValueINI TextLeft;
+	CmValueINI TextSpace;
+	CmValueINI TextFont;
+	CmValueINI TextFontSize;
+	CmValueINI TextFontColor;
+	CmValueINI TextFontAlpha;
 	// canvas
 	CmValueINI Canvas;
 	CmValueINI CanvasTop;
@@ -166,9 +176,18 @@ ChartProfile pro_ =
 	"Color:DarkSeaGreen",
 	"Alpha:1.0",
 	// title
-	"/Title:Local Chart Title",
+	"/Title:Chart title defaults",
 	"Top:5",
 	"Left:10",
+	"Font:Arial",
+	"FontSize:12",
+	"FontColor:Black",
+	"FontAlpha:1.0",
+	// text
+	"/Text:Chart text defaults",
+	"Top:5",
+	"Left:10",
+	"Space:20",
 	"Font:Arial",
 	"FontSize:12",
 	"FontColor:Black",

@@ -57,9 +57,6 @@ bool CmDateTime::testCmTime()
 	uint64 u64GMST;
 	int32  deltaMilliArcSec;
 
-	//printf("CmDateTime unitTest()\n");
-	//printf("=====================\n\n");
-
 #define DATETIME_TIMESTAMP1		"2005-03-28 18:00:00"
 #define DATETIME_TIMESTAMP2		"2038-01-01 12:00:00"
 #ifdef gcc
@@ -76,14 +73,9 @@ bool CmDateTime::testCmTime()
 												// 06h25m00     = 96.25 deg					http://www.jgiesen.de/astro/astroJS/sunriseJS/
 	u64GMST = getGMST(u64UTC);
 	deltaMilliArcSec = abs((int32)((u64GMST - DATETIME_PICO_DEG1)/u64MilliArcSec));
-	//printf("DateTime: %s  ",DATETIME_TIMESTAMP1);
-	//printf("GMST delta: %5u milli arc sec\n",deltaMilliArcSec);
-
 	u64UTC = getNanoSec(DATETIME_TIMESTAMP2);
 	u64GMST = getGMST(u64UTC);
 	deltaMilliArcSec = abs((int32)((u64GMST - DATETIME_PICO_DEG2)/u64MilliArcSec));
-	//printf("DateTime: %s  ",DATETIME_TIMESTAMP2);
-	//printf("GMST delta: %5u milli arc sec\n\n",deltaMilliArcSec);
 
 	// CmTimestamp test
 	const uint32 TestTime = 1524562000; // 2018-04-24 09:26:40 UTC, Tuesday (=3), 114 day of year 
@@ -134,7 +126,7 @@ int64 CmDateTime::getSysClockNanoSec(bool _isPerformanceCounter)
 }
 
 // Time conversion
-uint64 CmDateTime::getNanoSec(const char* szDateTime)
+int64 CmDateTime::getNanoSec(const char* szDateTime)
 {
 #define TIMEZONE 60*60
 	CmString  mDateTime(szDateTime);
@@ -186,7 +178,7 @@ uint64 CmDateTime::getNanoSec(const char* szDateTime)
 	if (-1==(nTime=mktime(&stDateTime))){
 		throw CmException("Time not recognized",szDateTime);
 	}
-	return (((uint64)(nTime + TIMEZONE) * 1000) + nMilliSeconds) * 1000000;
+	return (((int64)(nTime + TIMEZONE) * 1000) + nMilliSeconds) * 1000000;
 }
 
 CmString CmDateTime::getTimeUTC(uint32 _uDateTime, int32 _nDayTime, bool _isFilename)
@@ -253,7 +245,7 @@ CmString CmDateTime::getTimestamp(int64 Timestamp, int32 TimeOffset, bool WithTi
 	#ifdef __BORLANDC__
 		pDateTime = gmtime((time_t*)&uDateTime);
 	#else
-	if (0 != gmtime_s(pDateTime, (const time_t*)&Timestamp_s)){
+	if (0 != _gmtime64_s(pDateTime, (const time_t*)&Timestamp_s)){
 		// time conversion failed
 		memset(&stDateTime, 0, sizeof(stDateTime));
 		stDateTime.tm_sec = Timestamp_s % 60;
@@ -410,7 +402,7 @@ struct tm& CmTimestamp::getDateTime(uint64 Timestamp_s)
 	Timestamp_s == 0 ? Timestamp_s = time(NULL) : 0;
 
 	// decompose timestamp	
-	if (0 != gmtime_s(&stDateTime, (const time_t*)(&Timestamp_s))){
+	if (0 != _gmtime64_s(&stDateTime, (const time_t*)(&Timestamp_s))){
 		// time conversion failed
 		memset(&stDateTime, 0, sizeof(stDateTime));
 		// estimate seconds, minutes and hours
@@ -453,20 +445,46 @@ int32 CmTimestamp::getDayOfYear()
 	return getDateTime((uint32)(Timestamp_ns / DATETIME_NANOSECONDS)).tm_yday + 1;
 }
 
-double CmTimestamp::getDateTimestamp(int32 _Year, int32 _Month, int32 _Day, int32 _Hour, int32 _Minute, int32 _Second)
+int64 CmTimestamp::getDateTimestamp(int32 _Year, int32 _Month, int32 _Day, int32 _Hour, int32 _Minute, int32 _Second)
 {
 	// check whether current time was requested
 	bool isCurrentTime = _Year == 0 && _Month == 0 && _Day == 0 && _Hour == 0 && _Minute == 0 && _Second == 0 ? true : false;
 
 	// time components
-	struct tm Time = { _Second, _Minute, _Hour, _Day, _Month == 0 ? 0 : _Month - 1, _Year<1900 ? 0 : _Year - 1900 };
-	int32 DayTimestamp = isCurrentTime ? (int32)time(NULL) : (int32)mktime(&Time);
-	// go back to last midnight for current date
+	struct tm Time;
+	Time.tm_year = _Year < 1900 ? 0 : _Year - 1900;
+	Time.tm_mon = _Month <= 0 ? 0 : _Month <=12 ? _Month - 1 : 0;
+	Time.tm_mday = _Day <= 0 ? 1 : _Day <= 31 ? _Day : 1;
+	Time.tm_hour = _Hour <= 0 ? 0 : _Hour <= 23 ? _Hour : 0;
+	Time.tm_min = _Minute <= 0 ? 0 : _Minute <= 59 ? _Minute : 0;
+	Time.tm_sec = _Second <= 0 ? 0 : _Second <= 60 ? _Second : 0; // allow for leap seconds
+	// determine whether DST is on
+	Time.tm_isdst = getDST(Time.tm_year + 1900, Time.tm_mon + 1, Time.tm_mday, Time.tm_hour) ? 1 : 0;
+	// generate timestamp 
+	int64 DayTimestamp = isCurrentTime ? _time64(NULL) : _mktime64(&Time);
+
+	// for current date, go back to last midnight 
 	DayTimestamp -= isCurrentTime ? DayTimestamp % SECONDS_PER_DAY : 0;
 	// convert to nanoseconds
 	Timestamp_ns = DayTimestamp * DATETIME_NANOSECONDS;
 
-	return (double)Timestamp_ns;
+	return Timestamp_ns;
+}
+
+bool CmTimestamp::getDST(int32 _Year, int32 _Month, int32 _Day, int32 _Hour)
+{
+	const int32 DST_ON_2020 = 26, DST_OFF_2020 = 25;  //ON in March, OFF in October
+
+	// Note: There is an ambiguity for DST_OFF for _Hour == 2, it will always be set to _isDST = true
+	switch (_Year){
+	case 2020: isDST = _Month < 3 ? false : _Month > 10 ? false : _Month == 3 ? (_Day < DST_ON_2020 ? false : _Day > DST_ON_2020 ? true : _Hour < 2 ? false : true) : _Month == 10 ? (_Day < DST_OFF_2020 ? true : _Day > DST_OFF_2020 ? false : _Hour < 2 ? true : false) : true; break;
+	default: isDST = _Month <= 3 ? false : _Month > 10 ? false : true; break;
+	}
+	return isDST;
+}
+bool CmTimestamp::getDST()
+{
+	return isDST;
 }
 
 int64 CmTimestamp::operator+(int Timestamp_s)

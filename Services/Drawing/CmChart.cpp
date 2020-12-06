@@ -30,7 +30,6 @@ SOFTWARE.
 */
 
 #define Chart_Config
-
 #include "CmChart.h"
 
 /*------CmChart---------------------ToDo--------------------------------------
@@ -42,14 +41,13 @@ SOFTWARE.
 CmChart::CmChart(const int8 *_Init)
 	:CmValueINI(_Init)
 {
-	// initialize default CmValueINI arrays
-	CmValueINI::setDefaultInfoFTL(pro_.UURI, dyn_.LogLevel);
-	CmValueINI::setDefaultInfoFTL(dyn_.UURI, dyn_.LogLevel);
-
 	// initialize workspace
 	Pro = NULL;
 	Dyn = NULL;
 
+	// initialize default CmValueINI arrays
+	CmValueINI::setDefaultInfoFTL(pro_.UURI, dyn_.LogLevel);
+	CmValueINI::setDefaultInfoFTL(dyn_.UURI, dyn_.LogLevel);
 }
 CmChart::~CmChart()
 {
@@ -107,9 +105,6 @@ bool CmChart::drawSignal(CmSignalType _SignalType)
 		pro().SignalType = int32(_SignalType);
 		if (false == drawSignalTest()) return false;
 	}
-
-
-
 
 	return true;
 }
@@ -170,6 +165,43 @@ bool CmChart::drawSignalTest()
 	dyn().Init.setDrawingEnabled(true);
 
 	return true;
+}
+
+bool CmChart::drawSignalTest(double _Phase1, double _Phase2)
+{
+	// background
+	bool Return = dyn().Init.setChartBackground(pro().BackgroundColor, pro().BackgroundAlpha);
+
+	// position
+	float Top = dyn().Height;
+	const float TopFirst = pro().TextTop;
+	const float Left = pro().TextLeft;
+	const float Space = pro().TextSpace;
+
+	// set text defaults
+	const double Rotation = 0.0;
+	dyn().Text.clearMatrix();
+	dyn().Text.setChartTextDefaults(pro().TextFontSize, Rotation, pro().TextFontColor, pro().TextFontAlpha);
+
+	// generate phase information
+	CmString PhaseLocal("    Local phase: ");
+	CmString PhaseRemote("Remote phase: ");
+	CmString Phase;
+	// local
+	Phase.double2String(_Phase1, 0);
+	PhaseLocal += Phase;
+	PhaseLocal += "°";
+	// remote
+	Phase.double2String(_Phase2, 0);
+	PhaseRemote += Phase;
+	PhaseRemote += "°";
+
+	// display phase information
+	int32 TextCount = 0;
+	Return == true ? Return = dyn().Text.setChartText(TextCount++, CmPoint2D(Left, Top -= TopFirst), PhaseLocal) : 0;
+	Return == true ? Return = dyn().Text.setChartText(TextCount++, CmPoint2D(Left, Top -= Space), PhaseRemote) : 0;
+
+	return Return;
 }
 
 double CmChart::getSignalPhaseOffsetDeg()

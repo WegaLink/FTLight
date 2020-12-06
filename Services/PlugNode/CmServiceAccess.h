@@ -355,12 +355,12 @@ private:
  *  CmNetworkService.
  *  This class supports access to network services (e.g. local or from Internet)
  */
-#define CM_NETWORK_UURI_LAN_TCP					"EKD@JN58nc_Türkenfeld.LAN_TCP"
-#define CM_NETWORK_UURI_LAN_UDP					"EKD@JN58nc_Türkenfeld.LAN_UDP"
-#define CM_NETWORK_UURI_WEGALINK				"EKD@JN58nc_Türkenfeld.WegaLink"
-#define CM_NETWORK_PORT_LAN_TCP					4225
-#define CM_NETWORK_PORT_LAN_UDP					4226
-#define CM_NETWORK_PORT_WEGALINK				CM_NETWORK_PORT_LAN_TCP
+#define CM_NETWORK_UURI_LAN_TCP		"EKD@JN58nc_Türkenfeld.LAN_TCP"
+#define CM_NETWORK_UURI_LAN_UDP		"EKD@JN58nc_Türkenfeld.LAN_UDP"
+#define CM_NETWORK_UURI_WEGALINK	"EKD@JN58nc_Türkenfeld.WegaLink"
+#define CM_NETWORK_PORT_LAN_TCP		4226
+#define CM_NETWORK_PORT_LAN_UDP		4225
+#define CM_NETWORK_PORT_WEGALINK	CM_NETWORK_PORT_LAN_TCP
 
 #define CM_SOCKET_NO_CONNECTION         0
 #define CM_SOCKET_BIND_ANY_PORT         0

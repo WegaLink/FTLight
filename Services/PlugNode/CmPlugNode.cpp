@@ -101,6 +101,22 @@ CmUURI& CmPlugNode::getUURI()
 	return ServiceUURI;
 }
 
+CmString& CmPlugNode::setBotName(CmString& _BotName)
+{
+	// add module name to service UURI for getting a module UURI
+	BotUURI = ServiceUURI.getText();
+	BotUURI += "[";
+	BotUURI += _BotName;
+	BotUURI += "]";
+
+	return BotUURI;
+}
+CmString& CmPlugNode::getBotUURI()
+{
+	return BotUURI;
+}
+
+
 // unit test
 bool CmPlugNode::testPlugNode()
 {
@@ -345,8 +361,10 @@ void CmPlugNode::initPlugNode(const CmPlugNode& _PlugNode)
 	CmUURI UURI = _PlugNode.ServiceUURI;
   ServiceUURI.setUURI(UURI);
 
-  // Assign the ServiceUURI also to the LocalService base class
+	// Assign the ServiceUURI also to the LocalService base class
 	CmServiceAccess::setServiceUURI(&this->ServiceUURI);
+	// Assign the ServiceUURI also as BotUURI
+	BotUURI = ServiceUURI.getText();
 
   // Take care for a first PlugNode
   if( NULL==ContactPlugNode )

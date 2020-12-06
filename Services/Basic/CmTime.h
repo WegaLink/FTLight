@@ -39,18 +39,23 @@ namespace Cosmos
 {
 
 //The MDateTime class allows for storing and processing date and time values.
-#define DATETIME_NANOSECONDS  (uint64)(1000*1000*1000)
-#define DATETIME_MICROSECONDS (uint64)(1000*1000)
-#define DATETIME_MILLISECONDS (uint64)(1000)
-// Timebase
-#define TIMEBASE_SECONDS      (DATETIME_NANOSECONDS)
-#define TIMEBASE_MILLISECONDS (DATETIME_NANOSECONDS/1000)
-#define TIMEBASE_MICROSECONDS (DATETIME_NANOSECONDS/1000000)
-#define TIMEBASE_DAILY        (86400*DATETIME_NANOSECONDS)
+#define DATETIME_FEMTOSECONDS	uint64(1000*1000*1000*1000*1000)
+#define DATETIME_PICOSECONDS	uint64(1000*1000*1000*1000)
+#define DATETIME_NANOSECONDS	uint64(1000*1000*1000)
+#define DATETIME_MICROSECONDS	uint64(1000*1000)
+#define DATETIME_MILLISECONDS	uint64(1000)
+// Timebase based on NANOSECONDS
+#define TIMEBASE_SECONDS		(DATETIME_NANOSECONDS)
+#define TIMEBASE_MILLISECONDS	(DATETIME_NANOSECONDS/1000)
+#define TIMEBASE_MICROSECONDS	(DATETIME_NANOSECONDS/(1000*1000))
+#define TIMEBASE_NANOSECONDS	1
+#define TIMEBASE_PICOSECONDS	0.001
+#define TIMEBASE_FEMTOSECONDS	0.000001
+#define TIMEBASE_DAILY			(86400*DATETIME_NANOSECONDS)
 // Seconds
 #define SECONDS_PER_MINUTE		60
-#define SECONDS_PER_HOUR		  3600
-#define SECONDS_PER_DAY				86400
+#define SECONDS_PER_HOUR		3600
+#define SECONDS_PER_DAY			86400
 
 class CmDateTime
 {
@@ -62,7 +67,7 @@ public:
 	static int64 getSysClockNanoSec(bool isPerformanceCounter =true);
 
 	// Time conversion
-	static uint64  getNanoSec(const char* szDateTime);
+	static int64  getNanoSec(const char* szDateTime);
 	static CmString getTimeUTC(uint32 uDateTime=0, int32 nDayTime =-1, bool isFilename =false);
 
   // Timestamp, e.g. as component for filenames
@@ -125,10 +130,10 @@ public:
 	double getTimestamp();
 	// get timestamp components
 	struct tm& getDateTime(uint64 Timestamp_s =0);
-	int32 getYear();				// 1970..
-	int32 getMonth();				// 1..12
-	int32 getDay();					// 1..31
-	int32 getHour();				// 0..23
+	int32 getYear();			// 1970..
+	int32 getMonth();			// 1..12
+	int32 getDay();				// 1..31
+	int32 getHour();			// 0..23
 	int32 getMinute();			// 0..59
 	int32 getSecond();			// 0..59
 	int32 getDayOfWeek();		// 1..7
@@ -138,7 +143,11 @@ public:
 	*  A timestamp will be created as requested by the date's components.
 	*  If all input parameter are zero then the timestamp refers to current date.
 	*/
-	double getDateTimestamp(int32 Year = 0, int32 Month = 0, int32 Day = 0, int32 Hour = 0, int32 Minute = 0, int32 Second = 0);
+	int64 getDateTimestamp(int32 _Year = 0, int32 _Month = 0, int32 _Day = 0, int32 _Hour = 0, int32 _Minute = 0, int32 _Second = 0);
+
+	/** isDST. DST (day light saving) will be determined */
+	bool getDST(int32 _Year, int32 _Month, int32 _Day, int32 _Hour);
+	bool getDST();
 
 	/** operator
    *  Some operations with timestamps will be performed
@@ -172,6 +181,7 @@ private:
 private:
 	// timestamp components
 	struct tm stDateTime;
+	bool isDST;
 
 private:
 	// runtime evaluation

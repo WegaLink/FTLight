@@ -138,7 +138,7 @@ public:
   int64 getIntervalCount();
 
   /** clearBaseStatistics.
-   *  The base statistics array will be destroyed.
+   *  The base statistics array will be cleared.
    */
   void clearBaseStatistics();
 

@@ -220,7 +220,7 @@ bool CmServiceAccess::switchServiceAccess()
 	bool Ret = ConnectionSwitch->sendCommand(CMCOMMAND_SWITCH, Connection4);
 
 	// schedule connection for shutdown at a later time
-	ServiceConnectionLock.enterSerialize();
+	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_switchServiceAccess);
 	ConnectionSwitch != NULL ? ConnectionSwitch->NextServiceConnection = ShutDownConnections : 0;
 	ShutDownConnections = ConnectionSwitch;
 	ConnectionSwitch = NULL;
@@ -516,7 +516,7 @@ void CmServiceAccess::disconnect(CMCONN _ConnectionID)
 
 bool CmServiceAccess::shutdownConnections()
 {
-	ServiceConnectionLock.enterSerialize();
+	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_shutdownConnections);
 
 	// schedule all connections for shutdown
 	CmServiceConnection *Connections[5] = { Connection1, Connection2, Connection3, Connection4, ConnectionSwitch };
@@ -535,7 +535,7 @@ bool CmServiceAccess::shutdownConnections()
 
 bool CmServiceAccess::deleteIdleConnections()
 {
-	ServiceConnectionLock.enterSerialize();
+	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_deleteIdleConnections);
 
 	CmServiceConnection **Connection = &ShutDownConnections;
 	while (NULL != *Connection){
@@ -563,7 +563,7 @@ bool CmServiceAccess::deleteIdleConnections()
 
 bool CmServiceAccess::deleteConnections()
 {
-	ServiceConnectionLock.enterSerialize();
+	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_deleteConnections);
 
 	// delete remaining connections
 	CmServiceConnection **Connection = &ShutDownConnections;
@@ -955,7 +955,7 @@ bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI
 	if (false == joinNetwork(_NetworkUURI)) 
 		return false;
 
-	// wait until new network connection has loged in to peers
+	// wait until new network connection has logged in to peers
 	Sleep(20);
 
 	// try again to find service UURI at network UURI

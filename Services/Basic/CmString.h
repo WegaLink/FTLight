@@ -44,6 +44,8 @@ namespace Cosmos
 
 class CmLString;
 class CmMString;
+template <typename T>
+class CmVector;
 
 //CmString provides convenient functions for string handling
 class CmString
@@ -53,8 +55,9 @@ public:
 	CmString();
 	CmString(const int8* _Text);
 	CmString(const int8* _Text, uint32 _Length);
-	CmString(uint32 _Length);
+	CmString(uint32 _Length, uint8 _Init=0);
 	CmString(const CmString& _String);
+	CmString(CmVector<uint8>& _VectorUInt8);
 	virtual ~CmString();
 	void initWorkspace();
 
@@ -90,7 +93,8 @@ public:
 	void getAt(const uint32 _Pos, void*& _Val64);
 	void getAt(const uint32 _Pos, double& _ValDouble);
 	// further set functions
-	void clear();
+	void clear(); // clear text content
+	void reset(); // reset position markers
 	void fill(size_t _Length, uint8 _Digit);
 	void setText(const CmString& _String);
 	void setLength(size_t _Length);
@@ -126,10 +130,6 @@ public:
 	uint32 operator[](uint32 _uPos) const;
 
 public: 
-	// ToDo: type conversion
-	//operator const int8*() const;
-
-public:
 	// string assignment and processing operators
 	void operator=(const CmString& _String);
 	void operator=(const int8* _Text);
@@ -213,14 +213,26 @@ public:
 	bool showActiveHighlight();
 
 public:
-	/** getNumAsDouble/Uint64.
+	/** getNumAsDouble/Uint64/Int32.
 	*		A string will be evaluated to a double or uint64 value respectively.
-	*   'double' accepts: 123, 12.3, 1.2e3, 1.2E-3
+	*   'double' accepts: 123, -123, 12.3, 1.2e3, 1.2E-3
 	*   'uint64' accepts: 123, 0x123, 0XaBC
+	*   'int32' accepts: 123, -123, 0x123, 0XaBC
 	*/
 	bool isConversionError;
 	double getNumAsDouble();
+	double getNumAsDouble(int32 _PosStart, int32 _PosEnd);
 	uint64 getNumAsUint64();
+	uint64 getNumAsUint64(int32 _PosStart, int32 _PosEnd);
+	int32 getNumAsInt32();
+	int32 getNumAsInt32(int32 _PosStart, int32 _PosEnd);
+
+	/** getMonth. 
+	*	The month will be determined from abbreviated names
+	*	Jan=1, Feb=2, ... , Dec=12 or 0 will be returned 
+	*/
+	int32 getMonthAsInt32();
+	int32 getMonthAsInt32(int32 _PosStart, int32 _PosEnd);
 
 public:
 	//Parse current string and return a list of substrings accordingly to patterns
@@ -250,6 +262,8 @@ public:
 	bool isFolderExists(const int8* _FolderPath = NULL);
 	bool addFilesOnPath(CmLString& _Files, const int8* _Path = NULL);
 	bool getFoldersOnPath(CmLString& _Folders, const int8* _Path = NULL);
+	bool allFiles(CmString& _File, const CmString& _Path);
+	bool allLines(CmString& _Line, uint32 _Offset=0);
 
 	/** allocate/releaseMemory.
 	*  A bookkeeping is done whenever memory is allocated or released.
@@ -303,9 +317,11 @@ public:
 		}
 	}
 	static CmString getMemoryState(bool _isClearType = false);
+	static bool clearMemoryState();
 
 	friend	class CmLString;
 	friend	class CmMString;
+	friend	class CmStringFTL;
 
 protected:
 	// full content fields (allocated if not NULL)
@@ -320,6 +336,10 @@ protected:
 	uint32 ActiveLength;
 	uint32 HighlightStart;
 	uint32 HighlightLength;
+
+	// index for all files in a folder
+	HANDLE hFile;
+	WIN32_FIND_DATAA FindFileData;
 };
 
 //CmLString represents a list of MStrings
@@ -417,17 +437,17 @@ private:
  *  arbitrary length.
  *
  *  Further, the following scheme extends existing identifiers in a way, where
- *  a person, a location and a subject is combined and promises to be as well a
+ *  an operator, a location and a subject is combined and promises to be as well a
  *  good candidate for being 'universally' unique.
  *
  *  The proposed UURI will be generated in the following way:
  *
- *  <person>@<locator>_<city>.<subject>
- *           ---<location>---
+ *  <operator>@<locator>_<city>.<subject>
+ *             |--<location>--|
  *
  *  The UURI components are defined/described as follows:
  *
- *    <person>   - a person's name or shortcut, e.g. 'Eckhard.Kantz' or 'EKD'
+ *    <operator> - a person's name or shortcut, e.g. 'Eckhard.Kantz' or 'EKD'
  *    <locator>  - a shortcut Local to a geographical location, e.g. JN58nc
  *                 see also: http://de.wikipedia.org/wiki/QTH-Locator
  *    <city>     - a city or another readable location name, e.g. 'Türkenfeld'
@@ -465,6 +485,7 @@ public:
    */
 	bool setUURI(const char *_UURI = NULL, const char *_RootUURI = NULL);
 	bool setUURI(const CmString& _UURI);
+	bool setUURI(CmString& _UURI, int32 _PosEnd, int32 _PosStart=0);
 	bool setUURI(const CmUURI& _UURI);
 	bool setUURI(const CmString& _Operator, const CmString& _Locator, const CmString& _Site, const CmString& _Subject);
 
@@ -585,6 +606,13 @@ public:
 	}
 
 public:
+	/** getData. A pointer to the data field will be returned
+	*/
+	T* getData(){
+		return Vector;
+	}
+
+public:
 	/** set/getScalar.
 	*  A scalar value will be stored/retrieved.
 	*/
@@ -636,17 +664,23 @@ public:
 	/** operator==. */
 	bool operator==(CmVector& _Vector){
 		// compare Length
-		if (Length != _Vector.Length) return false;
+		if (Length != _Vector.Length) 
+			return false;
 		// compare all elements
 		for (int i = 0; i < Length; i++){
-			if (operator[](i) != _Vector[i]) return false;
+			if (operator[](i) != _Vector[i]) 
+				return false;
 		}
 		// compare scalar
 		if (getScalar() != _Vector.getScalar()) return false;
 		// return length
 		return true;
 	}
-
+	/** operator==. */
+	bool operator!=(CmVector& _Vector){
+		if (operator==(_Vector)) return false;
+		return true;
+	}
 public:
 	/** setValue.
 	*  Convenience functions for setting multiple vector items in one go.
@@ -765,6 +799,16 @@ public:
 		return *this;
 	}
 
+public:
+	/** allItems.
+	*  The next item after most recently returned item will be returned.
+	*/
+	bool allItems(T& _Item){
+		bool isValidIndex = NextIndex < Length;
+		isValidIndex ? _Item = operator[](NextIndex) : 0;
+		return isValidIndex;
+	}
+
 private:
 	int32 adjustSize(int32 _NewLength){
 		// validate new length
@@ -774,7 +818,7 @@ private:
 		// extend to next 4k size
 		const int32 Size4k = 4096 / sizeof(T);
 		NewSize = Size4k * (1 + (NewSize - 1) / Size4k);
-		
+
 		// extend vector
 		T* OldVector = Vector;
 		NewSize > 0 ? Vector = CmString::allocateMemory<T>(NewSize, isCmVector) : Vector = NULL;
@@ -821,7 +865,7 @@ int64 ItemsOfTypeAllocated = 0;
 int64 ItemsOfTypeReleased = 0;
 CRITICAL_SECTION MemoryAccess;
 bool isInitMemory = false;
-bool isFocus = true;
+bool isFocus = false;	// for analyzing a set of types
 bool isInt8 = false;
 bool isUint8 = false;
 bool isInt16 = false;
@@ -835,6 +879,7 @@ bool isCmStringFTLChild = false;
 bool isCmServiceConnection = false;
 bool isCmException = false;
 bool isCmMatrixFTL = false;
+bool isCmMatrix = false;
 bool isCmVector = false;
 #else
 extern int64 ItemsAllocated;
@@ -861,6 +906,7 @@ extern bool isCmStringFTLChild;
 extern bool isCmServiceConnection;
 extern bool isCmException;
 extern bool isCmMatrixFTL;
+extern bool isCmMatrix;
 extern bool isCmVector;
 #endif
 

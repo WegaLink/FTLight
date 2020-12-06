@@ -175,7 +175,7 @@ bool SERVICE_CmGateway::processInformation(CmString& _Information)
 
 SERVICE_CmGateway& SERVICE_CmGateway::Provider()
 {
-	enterSerialize(1);
+	enterSerialize(CMLOCKID_SERVICE_CmGateway_Provider);
 
 	// Look-up or instantiate a CmGateway PROVIDER class if it is not a valid local provider
 	if ((NULL == ServiceNetworkGateway) || (LocalProvider != ServiceNetworkGateway))
@@ -232,7 +232,7 @@ bool CmGatewayConnection::addToGatewayConnectionList()
 	// remove idle connections
 	if (false == cleanupGatewayConnections()) return false;
 
-	GatewayConnectionLock.enterSerialize(2);
+	GatewayConnectionLock.enterSerialize(CMLOCKID_SERVICE_CmGateway_addToGatewayConnectionList);
 
 	// add new member to list
 	NextGatewayConnection = GatewayConnections;
@@ -245,7 +245,7 @@ bool CmGatewayConnection::addToGatewayConnectionList()
 
 bool CmGatewayConnection::cleanupGatewayConnections()
 {
-	GatewayConnectionLock.enterSerialize(3);
+	GatewayConnectionLock.enterSerialize(CMLOCKID_SERVICE_CmGateway_cleanupGatewayConnections);
 
 	// check whether connections have become idle and can be removed
 	CmGatewayConnection **Connection = &GatewayConnections;

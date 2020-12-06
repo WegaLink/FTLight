@@ -87,9 +87,9 @@ public:
    *  used. If the UURI string is missing as well (NULL), then CmPlugNode's UURI
    *  will be generated for the Cosmos software: 'EKD@JN58nc_Türkenfeld.Cosmos'.
    */
-  CmPlugNode(CmUURI *UURI =NULL,CmUURI *RootUURI =NULL);
-  CmPlugNode(const char *UURI =NULL,const char *RootUURI =NULL);
-  CmPlugNode(const CmPlugNode& PlugNode);
+  CmPlugNode(const char *_UURI =NULL,const char *_RootUURI ="");
+  CmPlugNode(CmUURI *_UURI = NULL, CmUURI *_RootUURI = NULL);
+  CmPlugNode(const CmPlugNode& _PlugNode);
 
 	// Destructor
 	virtual ~CmPlugNode();
@@ -100,6 +100,12 @@ public:
 	*/
 	virtual CmUURI& getUURI();
 
+	/** setBotName/getBotUURI
+	*   A module name will be added to the ServicUURI for getting a BotUURI.
+	*/
+	CmString& setBotName(CmString& _BotName);
+	CmString& getBotUURI();
+	
 public:
 	/** testPlugNode.
 	*   A unit test will run against the CmPlugNode class
@@ -110,8 +116,8 @@ protected:
 	/** initPlugNode.
    *  Initialize PlugNode and connect it to a local network
    */
-  void initPlugNode(CmUURI *UURI,CmUURI *RootUURI);
-  void initPlugNode(const CmPlugNode& PlugNode);
+  void initPlugNode(CmUURI *_UURI,CmUURI *_RootUURI);
+  void initPlugNode(const CmPlugNode& _PlugNode);
 
 protected:
 	/** checkinToLocalNetwork.
@@ -122,7 +128,7 @@ protected:
 	 *	@param PlugNode a Local to the PlugNode to be connected
    *  @return whether connecting to the local network succeeded or not
    */
-	bool checkinToLocalNetwork(CmUURI& LocalNetworkUURI, CmPlugNode *PlugNode);
+	bool checkinToLocalNetwork(CmUURI& _LocalNetworkUURI, CmPlugNode *_PlugNode);
 
 private:
 	/** reconnectNetwork.
@@ -174,8 +180,9 @@ public:
 
 protected:
   // Workspace of a derived class for which this CmPlugNode is a container for
-	CmUURI ServiceUURI;    // class identifier (identification of a SERVICE)
-	void *ServiceProvider; // class implementation (pointer to a SERVICE PROVIDER)
+	CmUURI ServiceUURI;			// service identifier: unique service ID
+	CmString BotUURI;				// bot identifier: ServiceUURI[BotName]
+	void *ServiceProvider;	// class implementation (pointer to a SERVICE PROVIDER)
 
 };
 
@@ -195,12 +202,12 @@ class SERVICE_CmPlugNode_Demo : public CmPlugNode
 #define UURI_PROVIDER_CmPlugNode_Demo     UURI_SERVICE_CmPlugNode_Demo"/built/2012-09-06"
 
 public:
-	SERVICE_CmPlugNode_Demo(const char *UURI = NULL, const char *RootUURI = NULL);
+	SERVICE_CmPlugNode_Demo(const char *_UURI = NULL, const char *_RootUURI = NULL);
 	~SERVICE_CmPlugNode_Demo();
 
 public:
 	// Any information from other PlugNodes will arrive in this function
-	bool processInformation(CmString& Information);
+	bool processInformation(CmString& _Information);
 
 public:
 	/** getLastInformation.
@@ -237,14 +244,14 @@ public:
 class PROVIDER_CmPlugNode_Demo : public CmPlugNode
 {
 public:
-	PROVIDER_CmPlugNode_Demo(const char *UURI = NULL, const char *RootUURI = NULL);
+	PROVIDER_CmPlugNode_Demo(const char *_UURI = NULL, const char *_RootUURI = NULL);
   ~PROVIDER_CmPlugNode_Demo();
 
 public:
   CmUURI& getUURI();
 
 public:
-	bool processInformation(CmString& Information);
+	bool processInformation(CmString& _Information);
 	const CmString& getLastInfo();
 
 };

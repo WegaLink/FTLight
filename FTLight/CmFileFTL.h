@@ -33,7 +33,7 @@ SOFTWARE.
 #ifndef CmFileFTLH
 #define CmFileFTLH
 
-#include "FTLight/CmStringFTL.h"
+#include "FTLight/CmValueFTL.h"
 
 namespace Cosmos
 {
@@ -58,7 +58,7 @@ enum TIME_BASE { TB_ASTRO, TB_EARTH, TB_LIGHT, TB_FTL };
 #define HOUR   60*MINUTE
 #define DAY    24*HOUR
 #define WEEK   7*DAY
-#define SYEAR  52*WEEK+TIME DAY+TIME DAY/4-TIME DAY/100+TIME DAY/400
+#define SYEAR  52*TIME WEEK+TIME DAY+TIME DAY/4-TIME DAY/100+TIME DAY/400
 #define SDAY   SYEAR/366
 // Time base LIGHT
 #define YOCTO  10000
@@ -78,29 +78,29 @@ enum TIME_BASE { TB_ASTRO, TB_EARTH, TB_LIGHT, TB_FTL };
 /** formatting types when facing different time periods */
 enum F_TYPE { 
 	F_TOP,
-	F_U,				// universe, million years and higher
+	F_U,			// universe, million years and higher
 	F_10K, 			// 10'000 years
-	F_K, 				// 1000 years
-	F_C, 				// 1 century
-	F_D, 				// 1 decade
-	F_Y, 				// 1 year
+	F_K, 			// 1000 years
+	F_C, 			// 1 century
+	F_D, 			// 1 decade
+	F_Y, 			// 1 year
 	F_5M, 			// 5 minutes
 	F_10S, 			// 10 seconds
-	F_1S,				// 1 second
-	F_SU,				// milli/micro seconds
+	F_1S,			// 1 second
+	F_SU,			// milli/micro seconds
 	F_SL, 			// 100 nano/femto/zepto seconds/FTL
 	F_SLL,			// 1/10 nano/femto/zepto/yocto seconds
 	F_FTL,			// 1/10 FTL
 };
 struct stInitFTLight{
 	int64 samples;      // number of samples to be collected (<=16399)
-											// 0 = special case (month,year,decade,century)
+						// 0 = special case (month,year,decade,century)
 	TIME_BASE t_base;   // domain that the subsequent 64bit value is accounted to
 	int64 slot;         // periode of a time slot, dependent also on domain
 	char* format;       // format string of the subdirectory name
 	int   factor;       // forward current value multiplied by factor to next level
-											// in addition to forwarding the subdirectory name itself
-											// - negative values forward the previous subdirectory name
+						// in addition to forwarding the subdirectory name itself
+						// - negative values forward the previous subdirectory name
 	F_TYPE ftype;       // type of formatting
 };
 // time period based directory hierarchy
@@ -115,16 +115,18 @@ typedef struct _FileFTLinfo FileFTLinfo;
 
 /** CmFileFTL. working with FTLight files in a FTLight folder hierarchy
 *
-*	 The data to be inserted to FTLight is supposed to be provided in a matrix as follows:
-*  Data:::array of C columns with M measure values, [`] = header, [c] = format descriptor, [0, m] = timestamp, [c, m] = measure values
+*  The data to be inserted to FTLight is supposed to be provided in a matrix as follows:
+*
+*  Data:::array of C columns with M measure values, [`] = FTLight header, [c] = format descriptor, [0, m] = timestamp, [c, m] = measure values
+*
 *  Procedure:
-*  First the header will be checked whether it is not empty. In that case it will
-*  be inserted into the FTLight file before the data. Further, the parent entries
-*  will be inserted after the header (for parallel writing in FTLight format).
+*  First the FTLight header will be checked whether it is not empty. In that case 
+*  it will be inserted into the FTLight file before the data. Further, the parent 
+*  entries will be inserted after the header (for parallel writing in FTLight format).
 *  The next step will be insertion of all measure values line by line until the 
 *  measure count has been reached.
 *  Finally, the header will be deleted but the matrix with measure values will be
-*  preserved so that it can be used multiple if appropriate.
+*  preserved so that it can be used multiple times if needed.
 */
 class CmFileFTL
 {
@@ -136,6 +138,16 @@ public:
 public:
 	// test FileFTL module
 	bool testFileFTL();
+
+public:
+	/** putFTLightData.
+	*   A set of FTLight data will be inserted into the matrix at the Data element.
+	*   Further, a write-to-disk operation will be done when the timestamp is lower
+	*   than start-of-period or higher or equal than end-of-period.
+	*   A FTLight header will be generated before a write-to-disk operation based
+	*   on the StringINI content of the UURI argument.
+	*/
+	bool putFTLightData(CmValueINI& _UURI, CmValueINI& _Return);
 
 public: 
 	// FTLight identifier (UURI)
@@ -161,9 +173,15 @@ public:
 public:
 	/** write/readData.
 	*  Transfer data to and from a FTLight repository. 
-	*  In case of a matrix (at Data) a two-dimensional field is assumed:
-	*   [c]   - the header of a data column c
-	*   [c,m] - the measurement values that belong to column c
+	*  In case of a matrix (at Data), a multi-dimensional field is assumed:
+	*   [`]   - header in the FTLight file
+	*   [0]   - unit and scaling of the first column (timestamp)
+	*   [c]   - unit and scaling of data in column c
+	*   [0,m] - timestamp of data row m
+	*   [c,m] - measurement value m of column c
+	*   [0,0,0] - next scheduled write to disk
+	*   [0,0,1] - begin of period
+	*   [0,0,2] - end of period
 	*/
 	bool writeData(CmValueFTL& _Data);
 	bool readData(CmValueFTL& _Data, CmStringFTL& _StringFTL, CmString _AddrData, int32& _IndexCount);
@@ -195,8 +213,6 @@ protected:
 	bool enterSubDirectory(struct stTimePeriodHierarchy* _pTimePeriodHierarchy, unsigned int* _pTimeVal, CmString& _Prefix, bool _fCreate = false);
 	CmString* getDataVector(uint64 _u64SampleTime, CmString* _pDataVector, FTLight_DATA_TYPE_IDENTIFIER _eFTLightIdentifier = BINX_TIME);
 
-	//bool dumpData(time_t, CmString*, CmString&);
-
 private:
 	// FTLight identifier (UURI)
 	CmUURI Identifier;				// unique identifier for a FTLight repository (operator,locator,location,subject)
@@ -210,16 +226,16 @@ private:
 
 private:
 	// FTLight files
-	CmString	FileName;			  // descriptive component in a FTLight file name
+	CmString	FileName;			// descriptive component in a FTLight file name
 	uint32		FilePeriod;			// time period between two FTLight files
-  int				FileSeqNum;     // a number added to the filename when separate files are requested
-	int32			data_fd;				// file descriptor
+	int32		FileSeqNum;			// a number added to the filename when separate files are requested
+	int32		data_fd;			// file descriptor
 	uint32		TimeIndex;			// 
 	uint32		FileIndex;			//
 
 private:
 	// FTLight data
-	bool			isNewHeader;			// a new header will be written to file
+	bool		isNewHeader;		// a new header will be written to file
 	CmString	ParentCollection;	// Starting point for parallel read/write operations
 
 private:
@@ -236,24 +252,17 @@ private:
 };
 
 //------FileFTL-info--------------------------------------------------------
-#define DEFAULT_Info_FileFTL \
-"EKD@JN58nc_Türkenfeld.Info,timestamp\n\
-,Test:::test info\n\
-,,Item:test item\n\
-,Data\n\
-"
-//Data:::array of C columns with M measure values, [`] = header, [c] = format descriptor, [0, m] = timestamp, [c, m] = measure values
 
 // survey values
 #pragma warning (disable : 4510 4610)
 struct _FileFTLinfo {
 	// identification
-	CmValueFTL UURI;
-	CmValueFTL Timestamp;
+	CmValueINI UURI;
+	CmValueINI Timestamp;
 	// test
-	CmValueFTL TestItem;
+	CmValueINI Header;
 	// data
-	CmValueFTL Data;
+	CmValueINI Data;
 
 };
 
@@ -262,13 +271,14 @@ struct _FileFTLinfo {
 FileFTLinfo Info =
 {
 	// identification
-	"0",						// UURI
-	"0-0",					// timestamp
-	// test
-	"0-1-1-0",			// TestItem
+	"EKD@JN58nc_Türkenfeld.Info",
+	"/Timestamp",			
+	// header
+	"Header:Item-1",
 	// data
-	"0-2",					// Data
+	"Data",
 
+	//Data:::array of C columns with M measure values, [`] = header, [c] = format descriptor, [0, m] = timestamp, [c, m] = measure values
 }
 #endif
 ;

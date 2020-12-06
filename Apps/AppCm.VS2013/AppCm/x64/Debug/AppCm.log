@@ -1,0 +1,53 @@
+﻿Build started 06.12.2020 19:08:20.
+     1>Project "C:\_Workspace\_Projects\FTLight_github\Apps\AppCm.VS2013\AppCm\AppCm.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\\" /AI"C:\Program Files (x86)\Windows Kits\8.1\References\CommonConfiguration\Neutral" /AI"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\Facades\\" /Zi /clr /nologo /W4 /WX- /Od /D MSVS /D _DEBUG /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /TP /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\mscorlib.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Data.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Drawing.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Windows.Forms.dll" /FU"C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5.2\System.Xml.dll" /errorReport:prompt /clr:nostdlib ..\..\..\Bots\CmBots.cpp ..\..\..\FTLight\CmFileFTL.cpp ..\..\..\FTLight\CmStringFTL.cpp ..\..\..\FTLight\CmValueFTL.cpp ..\..\..\Services\Basic\CmException.cpp ..\..\..\Services\Basic\CmString.cpp ..\..\..\Services\Basic\CmTime.cpp ..\..\..\Services\Basic\CmTypes.cpp ..\..\..\Services\Drawing\CmChart.cpp ..\..\..\Services\Drawing\CmFocus.cpp ..\..\..\Services\PlugNode\CmCommunication.cpp ..\..\..\Services\PlugNode\CmGateway.cpp ..\..\..\Services\PlugNode\CmGatewayLAN.cpp ..\..\..\Services\PlugNode\CmPlugNode.cpp ..\..\..\Services\PlugNode\CmServiceAccess.cpp ..\..\..\Services\PlugNode\CmServiceConnection.cpp ..\..\..\Services\PlugNode\CmStream.cpp AppCm.cpp AppCmUI.cpp
+         CmBots.cpp
+         CmFileFTL.cpp
+         CmStringFTL.cpp
+         CmValueFTL.cpp
+         CmException.cpp
+         CmString.cpp
+         CmTime.cpp
+         CmTypes.cpp
+         CmChart.cpp
+         CmFocus.cpp
+         CmCommunication.cpp
+         CmGateway.cpp
+         CmGatewayLAN.cpp
+         CmPlugNode.cpp
+         CmServiceAccess.cpp
+         CmServiceConnection.cpp
+         CmStream.cpp
+         AppCm.cpp
+         AppCmUI.cpp
+         Generating Code...
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\CL.exe /c /Zi /clr /nologo /W4 /WX- /Od /D MSVS /D _DEBUG /D _UNICODE /D UNICODE /EHa /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"x64\Debug\\" /Fd"x64\Debug\vc120.pdb" /TP /errorReport:prompt "C:\Users\ekant\AppData\Local\Temp\.NETFramework,Version=v4.5.2.AssemblyAttributes.cpp"
+         .NETFramework,Version=v4.5.2.AssemblyAttributes.cpp
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"..\..\Runtime\AppCm.exe" /INCREMENTAL /NOLOGO user32.lib ws2_32.lib shlwapi.lib /ASSEMBLYRESOURCE:x64\Debug\CppWinForm1.AppCmUI.resources /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"..\..\Runtime\AppCm.pdb" /ASSEMBLYDEBUG /SUBSYSTEM:WINDOWS /TLBID:1 /ENTRY:"main" /DYNAMICBASE /FIXED:NO /NXCOMPAT /MACHINE:X64 x64\Debug\CmBots.obj
+         x64\Debug\CmFileFTL.obj
+         x64\Debug\CmStringFTL.obj
+         x64\Debug\CmValueFTL.obj
+         x64\Debug\CmException.obj
+         x64\Debug\CmString.obj
+         x64\Debug\CmTime.obj
+         x64\Debug\CmTypes.obj
+         x64\Debug\CmChart.obj
+         x64\Debug\CmFocus.obj
+         x64\Debug\CmCommunication.obj
+         x64\Debug\CmGateway.obj
+         x64\Debug\CmGatewayLAN.obj
+         x64\Debug\CmPlugNode.obj
+         x64\Debug\CmServiceAccess.obj
+         x64\Debug\CmServiceConnection.obj
+         x64\Debug\CmStream.obj
+         x64\Debug\AppCm.obj
+         x64\Debug\AppCmUI.obj
+         "x64\Debug\.NETFramework,Version=v4.5.2.AssemblyAttributes.obj"
+         AppCm.vcxproj -> C:\_Workspace\_Projects\FTLight_github\Apps\AppCm.VS2013\AppCm\..\..\Runtime\AppCm.exe
+     1>Done Building Project "C:\_Workspace\_Projects\FTLight_github\Apps\AppCm.VS2013\AppCm\AppCm.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:13.57

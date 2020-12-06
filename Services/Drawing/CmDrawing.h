@@ -120,9 +120,9 @@ typedef union
 class CmCanvas
 {
 public:
-  // Resize and draw
-  virtual bool resizeChart(CmSize2D NewSize) =0;
-  virtual void drawChart(CmSize2D Size) =0;
+	// Resize and draw
+	virtual bool resizeChart(CmSize2D NewSize) =0;
+	virtual void drawChart(CmSize2D Size) =0;
 	// Access parameters;
 	uint32 getChartWidth();
 	uint32 getChartHeight();
@@ -136,20 +136,20 @@ public:
 
 protected:
 	// Parameters set when opening a new canvas
- 	HWND hWnd;
-  HDC CanvasDC;
+	HWND hWnd;
+	HDC CanvasDC;
 	int CanvasWidth;
 	int CanvasHeight; 
   
-  // Chart data and geometry
-  uint32 *ChartRGB;
-  int32 ChartWidth;
-  int32 ChartHeight;
-  int32 ChartPitch;
-  int32 ChartSize;
-  int32 ChartPixels;
-  int32 ChartMemWidth;
-  int32 ChartMemHeight;
+	// Chart data and geometry
+	uint32 *ChartRGB;
+	int32 ChartWidth;
+	int32 ChartHeight;
+	int32 ChartPitch;
+	int32 ChartSize;
+	int32 ChartPixels;
+	int32 ChartMemWidth;
+	int32 ChartMemHeight;
 
 
 	friend class CmSignalScreen;

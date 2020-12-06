@@ -100,7 +100,7 @@ bool CmUURI::setUURI(const char *_UURI, const char *_RootUURI)
     UURI = NewRootUURI;
   }
   else
-  if( UURI[(int32)(UURI.getLength())-1] != '/' && NewUURI[0] != '/' )
+  if (UURI.getLength() > 0 &&  UURI[(int32)(UURI.getLength()) - 1] != '/' && NewUURI[0] != '/')
   {
     // extend root string with a delimiter (a slash)
 		if (NewUURI.getLength() > 0){
@@ -116,16 +116,24 @@ bool CmUURI::setUURI(const char *_UURI, const char *_RootUURI)
 
 bool CmUURI::setUURI(const CmString& _UURI)
 {
-  // Accept new UURI string
-  UURI = _UURI;
+	// Accept new UURI string
+	UURI = _UURI;
+
+	return true;
+}
+
+bool CmUURI::setUURI(CmString& _UURI, int32 _PosEnd, int32 _PosStart)
+{
+	// Accept specified UURI string
+	UURI.assignSubString(_PosEnd, &_UURI, _PosStart);
 
 	return true;
 }
 
 bool CmUURI::setUURI(const CmUURI& _UURI)
 {
-  // Accept new UURI
-  UURI = _UURI.getString();
+	// Accept new UURI
+	UURI = _UURI.getString();
 
 	return true;
 }
@@ -338,14 +346,14 @@ CmString::CmString(const int8* _Text, uint32 _Length)
   pText[Length] = 0;
 }
 
-CmString::CmString(uint32 _uLength)
+CmString::CmString(uint32 _Length, uint8 _Init)
 {
 	initWorkspace();
 
 	//Generate empty text array
-	Length = _uLength;
+	Length = _Length;
 	pText = allocateMemory<int8>(int32(Length + 1), isInt8);
-	memset(pText, 0, Length + 1);
+	memset(pText, _Init, Length + 1);
 }
 
 CmString::CmString(const CmString & _String)
@@ -353,6 +361,18 @@ CmString::CmString(const CmString & _String)
 	initWorkspace();
 	setText(_String.getText());
 }
+
+CmString::CmString(CmVector<uint8>& _VectorUInt8)
+{
+	initWorkspace();
+
+	//Generate text array
+	Length = _VectorUInt8.getLength();
+	pText = allocateMemory<int8>(int32(Length + 1), isInt8);
+	memcpy(pText, _VectorUInt8.getData(), Length);
+	pText[Length] = 0;
+}
+
 
 CmString::~CmString()
 {
@@ -377,6 +397,8 @@ void CmString::initWorkspace()
 	ActiveLength = 0;
 	HighlightStart = 0;
 	HighlightLength = 0;
+	// initialize file search
+	hFile = INVALID_HANDLE_VALUE;
 }
 
 
@@ -416,11 +438,21 @@ bool CmString::testCmString()
 
 	// conversion functions
 	CmString Num;
+	CmString NumNeg;
 	uint64 Val;
+	uint64 Val5;
+	int32 Val5Neg;
 	// uint32
 	Num = "1234567890";
+	NumNeg = "-1234567890";
 	Val = 1234567890;
+	Val5 = 123456;
+	Val5Neg = -12345;
 	if (Val != Num.getNumAsUint64()) return false;
+	if (Val5 != Num.getNumAsUint64(0, 5)) return false;
+	if (Val != Num.getNumAsInt32()) return false;
+	if (Val5 != Num.getNumAsInt32(0, 5)) return false;
+	if (Val5Neg != NumNeg.getNumAsInt32(0, 5)) return false;
 	// uint64
 	Num = "12345678901234567890";
 	Val = 12345678901234567890;
@@ -431,9 +463,13 @@ bool CmString::testCmString()
 	if (Val != Num.getNumAsUint64()) return false;
 	// test wrong number formats
 	Num = "1.23";
-	if(0 != Num.getNumAsUint64()) return false;
+	if ((1 != Num.getNumAsUint64()) || (false == Num.isConversionError)) return false;
 	Num = "0123A";
-	if(0 != Num.getNumAsUint64())	return false;
+	if((123 != Num.getNumAsUint64()) || (false == Num.isConversionError)) return false;
+	Num = " 123";
+	if ((123 != Num.getNumAsUint64()) || (true == Num.isConversionError))	return false;
+	Num = "123 ";
+	if ((123 != Num.getNumAsUint64()) || (true == Num.isConversionError))	return false;
 	// double: check against a maximal acceptable error 
 	const double fError = 1e-15;
 	double fVal;
@@ -459,9 +495,24 @@ bool CmString::testCmString()
 	Num = "1.23456789e1-2";
 	if(0 != Num.getNumAsDouble())	return false;
 	Num = "1.2345b6789e12";
-	if(0 != Num.getNumAsDouble())	return false;
+	if (1.2345 != Num.getNumAsDouble() || false == Num.isConversionError)	return false;
 	Num = "12345678901234567";
 	if(0 != Num.getNumAsDouble())	return false;
+
+	// month recognition
+	CmString Months("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec");
+	if (1 != Months.getMonthAsInt32(0, 2)) return false;
+	if (2 != Months.getMonthAsInt32(4, 6)) return false;
+	if (3 != Months.getMonthAsInt32(8, 10)) return false;
+	if (4 != Months.getMonthAsInt32(12, 14)) return false;
+	if (5 != Months.getMonthAsInt32(16, 18)) return false;
+	if (6 != Months.getMonthAsInt32(20, 22)) return false;
+	if (7 != Months.getMonthAsInt32(24, 26)) return false;
+	if (8 != Months.getMonthAsInt32(28, 30)) return false;
+	if (9 != Months.getMonthAsInt32(32, 34)) return false;
+	if (10 != Months.getMonthAsInt32(36, 38)) return false;
+	if (11 != Months.getMonthAsInt32(40, 42)) return false;
+	if (12 != Months.getMonthAsInt32(44, 46)) return false;
 
 	// test UURI
 	const CmString Operator("Operator.Name");
@@ -481,18 +532,6 @@ bool CmString::testCmString()
 
 	return true;
 }
-
-// ToDo: type conversion
-//CmString::operator const int8*() const
-//{
-//	//Return text array or empty string
-//	if (NULL != pText){
-//		return pText;
-//	}
-//	else{
-//		return (int8*)"";
-//	}
-//}
 
 const int8* CmString::getText() const
 {
@@ -564,7 +603,7 @@ int8* CmString::setText(const int8* _Text)
 	if (NULL == _Text) return pText;
 
 	//Replace existing text array with a new string
-	// ToDo: this may cause a crash when _pText is invalid (to be solved on a higher level)
+	// ToDo: this may cause a crash when _Text is invalid (to be solved on a higher level)
 	Length = (uint32)strlen(_Text);
 	pText = allocateMemory<int8>(int32(Length + 1), isInt8);
 	if (Length>0){
@@ -589,6 +628,15 @@ int8* CmString::setData(const uint8* _Data, size_t _Length)
 	return pText;
 }
 
+void CmString::reset()
+{
+	LineStart = 0;
+	LineNumber = 0;
+	ActiveStart = 0;
+	ActiveLength = 0;
+	HighlightStart = 0;
+	HighlightLength = 0;
+}
 void CmString::clear()
 {
 	if (NULL != pText){
@@ -615,7 +663,7 @@ int8* CmString::setText(const int8* _First, const int8* _Last)
 {
 	// delete previous text
 	if (NULL != pText){
-		releaseMemory<int8>(pText, int32(Length + 1), isFocus);
+		releaseMemory<int8>(pText, int32(Length + 1), isInt8);
 	}
 	pText = NULL;
 	Length = 0;
@@ -629,7 +677,7 @@ int8* CmString::setText(const int8* _First, const int8* _Last)
   }else{
     Length = 0;
   }
-	pText = allocateMemory<int8>(int32(Length + 1), isFocus);
+  pText = allocateMemory<int8>(int32(Length + 1), isInt8);
 	if (Length>0){
 	  memcpy(pText, _First, Length);
   }
@@ -647,7 +695,7 @@ void CmString::setLength(size_t _Length)
 	Length = _Length;
 	pText = allocateMemory<int8>(int32(Length + 1), isInt8);
 	// clear new data field
-  memset(pText,0,Length+1);
+	memset(pText,0,Length+1);
 }
 
 void CmString::adjustLength(size_t _Length)
@@ -916,12 +964,6 @@ void CmString::operator+(const CmString _String)
 	operator += (_String.getBuffer());
 }
 
-//CmString& CmString::operator+(const int8* RightOperand)
-//{
-//  return operator+ (CmString(RightOperand));
-//}
-//
-
 void CmString::operator += (const CmString& _String)
 {
 	operator += (_String.getBuffer());
@@ -1053,7 +1095,7 @@ void CmString::operator=(const uint64 _Val64)
 bool CmString::operator==(const CmString& _String) const
 {
 	return operator==(_String.getText());
-}
+		}
 bool CmString::operator==(const int8* _Text) const
 {
 	// check pointer
@@ -1074,7 +1116,7 @@ bool CmString::operator==(const int8* _Text) const
 bool CmString::operator!=(const CmString& _String) const
 {
 	return operator!=(_String.getText());
-}
+	}
 bool CmString::operator!=(const int8* _Text) const
 {
 	// check pointer
@@ -1095,7 +1137,7 @@ bool CmString::operator!=(const int8* _Text) const
 bool CmString::operator<(const CmString& _String) const
 {
 	return operator<(_String.getText());
-}
+		}
 bool CmString::operator<(const int8* _Text) const
 {
 	// check pointer
@@ -1118,7 +1160,7 @@ bool CmString::operator<(const int8* _Text) const
 bool CmString::operator<=(const CmString& _String) const
 {
 	return operator<=(_String.getText());
-}
+	}
 bool CmString::operator<=(const int8* _Text) const
 {
 	// check pointer
@@ -1141,7 +1183,7 @@ bool CmString::operator<=(const int8* _Text) const
 bool CmString::operator>(const CmString& _String) const
 {
 	return operator>(_String.getText());
-}
+	}
 bool CmString::operator>(const int8* _Text) const
 {
 	// check pointer
@@ -1524,7 +1566,7 @@ int32 CmString::assignSubString(int32 _Last, CmString *_Src, int32 _First)
 	size_t OldLength = Length;
 
   // Check for source string
-  if( _Src == NULL )
+  if( _Src == NULL)
     _Src = this;
 
   // Determine actual target length
@@ -1566,7 +1608,7 @@ int32 CmString::assignSubString(int32 _Last, CmString *_Src, int32 _First)
     setLength(DstLength);
 
     // Transfer content
-    memcpy(pText, _Src->pText + _First, DstLength);
+	_Src->pText != NULL ? memcpy(pText, _Src->pText + _First, DstLength) : 0;
   }
 
   return (int32)DstLength;
@@ -1654,6 +1696,7 @@ double CmString::getNumAsDouble()
 	double* Part = &Value;
 	double* Sign = &ValSign;
 	bool isFinished = false;
+	bool isUnexpected = false;
 
 	// preset conversion error to true
 	isConversionError = true;
@@ -1665,7 +1708,7 @@ double CmString::getNumAsDouble()
 		if (Exponent > MaxDouble) return Error;
 		// assemble values
 		switch (*(pText + i)){
-			// decimal digits
+		// decimal digits
 		case 0: isFinished = true; break;
 		case '0': *Part = *Part * 10 + 0; break;
 		case '1': *Part = *Part * 10 + 1; break;
@@ -1677,7 +1720,16 @@ double CmString::getNumAsDouble()
 		case '7': *Part = *Part * 10 + 7; break;
 		case '8': *Part = *Part * 10 + 8; break;
 		case '9': *Part = *Part * 10 + 9; break;
-			// apply sign
+		case ' ':
+			if (0 == *Part){
+				continue; // skip spaces at start
+			}
+			else{
+				isFinished = true;
+				break; // space ends conversion properly
+			}
+
+		// apply sign
 		case '+': break;
 		case '-': 
 			if (*Sign != 1.0) return Error;
@@ -1686,14 +1738,23 @@ double CmString::getNumAsDouble()
 			if (Part == &Exponent && Exponent > 0) return Error;
 			*Sign = -*Sign;
 			break;
-			// start fraction
+		// start fraction
 		case '.':
 		case ',': Part = &Fraction; break;
-			// start exponent
+		// start exponent
 		case 'e':
 		case 'E': Part = &Exponent; Sign = &ExpoSign; break;
-			// reject all others
-		default: return Error;
+		// reject/handle all others
+		default: 
+			if (0 == *Part){
+				isUnexpected = true;
+				break; // invalid digit at start 
+			}
+			else{
+				isUnexpected = true; 
+				isFinished = true; 
+				break; // invalid digit forces end of conversion
+			}
 		}
 		if (isFinished) break;
 		if (Part == &Fraction) FractionLength++;
@@ -1711,10 +1772,17 @@ double CmString::getNumAsDouble()
 		Value *= pow(10.0, ExpoSign * Exponent);
 	}
 
-	// success: clear conversion error 
-	isConversionError = false;
+	// success: clear conversion error, unexpected: is conversion error 
+	isConversionError = isUnexpected ? true : false;
 
 	return Value;
+}
+
+double CmString::getNumAsDouble(int32 _PosStart, int32 _PosEnd)
+{
+	CmString Num;
+	Num.assignSubString(_PosEnd, this, _PosStart);
+	return Num.getNumAsDouble();
 }
 
 uint64 CmString::getNumAsUint64()
@@ -1743,7 +1811,15 @@ uint64 CmString::getNumAsUint64()
 		case '7': uNum += 7; break;
 		case '8': uNum += 8; break;
 		case '9': uNum += 9; break;
-			// start a hex number
+		case ' ':				
+			if (0 == uNum)
+				continue;	// skip leading spaces
+			else{
+				isConversionError = false;
+				return uNum / Significance; // space ends conversion properly
+			}
+
+		// start a hex number
 		case 'x':
 		case 'X':
 			if (uNum != 0) return Error;
@@ -1751,7 +1827,12 @@ uint64 CmString::getNumAsUint64()
 			break;
 		// hex digits
 		default:
-			if (Significance != 16) return Error;
+			if (Significance != 16){
+				if (0 == uNum)
+					return Error;	// invalid digit before any value
+				else
+					return uNum / Significance; // invalid digit forces end of conversion
+			}
 			switch (*(pText + i)){
 				// hex
 			case 'a':
@@ -1766,8 +1847,14 @@ uint64 CmString::getNumAsUint64()
 			case 'E': uNum += 14; break;
 			case 'f':
 			case 'F': uNum += 15; break;
-				// reject all others
-			default: return Error;
+				// reject/handle others
+			default: 
+				if (0 == uNum){
+					return Error; // invalid digit before any value
+				}
+				else{
+					return uNum / Significance; // invalid char forces end of conversion
+				}
 			}
 		}
 	}
@@ -1776,6 +1863,39 @@ uint64 CmString::getNumAsUint64()
 	isConversionError = false;
 
 	return uNum;
+}
+
+uint64 CmString::getNumAsUint64(int32 _PosStart, int32 _PosEnd)
+{
+	CmString Num;
+	Num.assignSubString(_PosEnd, this, _PosStart);
+	return Num.getNumAsUint64();
+}
+
+int32 CmString::getNumAsInt32()
+{
+	return int32(getNumAsUint64());
+}
+
+int32 CmString::getNumAsInt32(int32 _PosStart, int32 _PosEnd)
+{
+	if (NULL == pText) return 0;
+	CmString Num;
+	int32 Sign = pText[_PosStart] == '-' ? -1 : 1;
+	Num.assignSubString(_PosEnd, this, pText[_PosStart] == '-' ? _PosStart + 1 : _PosStart);
+	return Sign * int32(Num.getNumAsUint64());
+}
+
+int32 CmString::getMonthAsInt32()
+{
+	return operator==("Jan") ? 1 : operator==("Feb") ? 2 : operator==("Mar") ? 3 : operator==("Apr") ? 4 : operator==("May") ? 5 : operator==("Jun") ? 6 : operator==("Jul") ? 7 : operator==("Aug") ? 8 : operator==("Sep") ? 9 : operator==("Oct") ? 10 : operator==("Nov") ? 11 : operator==("Dec") ? 12 : 0;
+}
+
+int32 CmString::getMonthAsInt32(int32 _PosStart, int32 _PosEnd)
+{
+	CmString Month;
+	Month.assignSubString(_PosEnd, this, _PosStart);
+	return Month.getMonthAsInt32();
 }
 
 // Binary backup and restore
@@ -1915,6 +2035,7 @@ bool CmString::isFolderExists(const int8* _FolderPath)
 	/* workaround:
 	*  Folder exists if it contains at least one file.
 	*  ToDo: handle empty case
+	*        PathFileExistsA(..) ?
 	*/
 	WIN32_FIND_DATAA FindFileData;
 	HANDLE hFind = INVALID_HANDLE_VALUE;
@@ -1989,23 +2110,107 @@ bool CmString::getFoldersOnPath(CmLString& _Folders, const int8* _Path){
 	return true;
 }
 
+bool CmString::allFiles(CmString& _File, const CmString& _Path)
+{
+	CmString Path(_Path);
+	Path += "\\*";
+
+	// check for start of file search
+	if (INVALID_HANDLE_VALUE == hFile){
+		// get first file
+		hFile = FindFirstFileA(Path.getText(), &FindFileData);
+		if (hFile == INVALID_HANDLE_VALUE) return false;
+	}
+	else{
+		// find next file
+		if (false == FindNextFileA(hFile, &FindFileData)){
+			FindClose(hFile);
+			hFile = INVALID_HANDLE_VALUE;
+			return false;
+		}
+	}
+	// evaluate filename
+	CmString Filename(FindFileData.cFileName);
+	for (;;){
+		// skip entry if not a file
+		if ((FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) || Filename == '.' || Filename == '..'){
+			if (false == FindNextFileA(hFile, &FindFileData)){
+				FindClose(hFile);
+				hFile = INVALID_HANDLE_VALUE;
+				return false;
+			}
+			Filename = FindFileData.cFileName;
+			continue;
+		}
+		break;
+	}
+	// return file content
+	Filename = _Path;
+	Filename += "\\";
+	Filename += FindFileData.cFileName;
+	try{
+		_File.readBinary(Filename.getText());
+	}
+	catch (...){
+		return false;
+	}
+
+	return true;
+}
+
+bool CmString::allLines(CmString& _Line, uint32 _Offset)
+{
+	// find end-of-line
+	uint32 LineEnd = searchPattern("\x0A", LineStart);
+	// verify valid line
+	if (LineEnd >= Length) return false;
+	// evaluate offset
+	_Line.clear();
+	if (_Offset < LineEnd){
+		// copy line
+		_Line.assignSubString(LineEnd, this, LineStart + _Offset);
+	}
+	// step one line forward
+	LineStart = LineEnd + 1;
+
+	return true;
+}
+
+bool CmString::clearMemoryState()
+{
+	ItemsAllocated = ItemsReleased = ItemsOccupied = MemoryAllocated = MemoryReleased = MemoryOccupied = 0;
+
+	return true;
+}
 CmString CmString::getMemoryState(bool _isClearType)
 {
-	// generate a memory report message
 	CmString ItemCount;
-	ItemCount.double2String((ItemsAllocated - ItemsReleased) / 1000.0, 3);
 	CmString MemorySize;
-	MemorySize.double2String((MemoryAllocated - MemoryReleased) / 1000000.0, 3);
-	CmString Memory("Memory items= ");
+	CmString Memory;
+	CmString ItemsChanged;
+	CmString ItemsOfTypeCount;
+	CmString MemoryChange;
+
+	// item state
+	int64 ItemsUsed = ItemsAllocated - ItemsReleased;
+	int64 ItemsDif = ItemsUsed - ItemsOccupied;
+	int64 ItemsOfTypeUsed = ItemsOfTypeAllocated - ItemsOfTypeReleased;
+	ItemsOccupied = ItemsUsed;
+	// memory state
+	int64 MemoryUsed = MemoryAllocated - MemoryReleased;
+	int64 MemoryDif = MemoryUsed - MemoryOccupied;
+	MemoryOccupied = MemoryUsed;
+
+	// generate a memory report message
+	ItemCount.double2String(ItemsUsed / 1000.0, 3);
+	ItemsChanged.double2String(double(ItemsDif), 0, 6);
+	Memory = "Memory items= ";
 	Memory += ItemCount;
 	Memory += "k (dif:";
-	CmString ItemsDif;
-	ItemsDif.double2String((double)(ItemsAllocated - ItemsReleased - ItemsOccupied), 0,6);
-	Memory += ItemsDif;
+	Memory += ItemsChanged;
 	Memory += ") ";
 	if ((ItemsOfTypeAllocated != 0) || (ItemsOfTypeReleased != 0)){
-		CmString ItemsOfTypeCount;
-		ItemsOfTypeCount.double2String(double(ItemsOfTypeAllocated - ItemsOfTypeReleased));
+		ItemsOfTypeCount.double2String(double(ItemsOfTypeUsed));
 		Memory += "{";
 		isFocus ? Memory += "focus " : 0;
 		isInt8 ? Memory += "int8 " : 0;
@@ -2021,21 +2226,21 @@ CmString CmString::getMemoryState(bool _isClearType)
 		isCmServiceConnection ? Memory += "CmServiceConnection " : 0;
 		isCmException ? Memory += "CmException " : 0;
 		isCmMatrixFTL ? Memory += "CmMatrixFTL " : 0;
+		isCmMatrix ? Memory += "CmMatrix " : 0;
 		isCmVector ? Memory += "CmVector<T> " : 0;
 		Memory += "= ";
 		Memory += ItemsOfTypeCount;
 		Memory += "}";
 	}
+	MemorySize.double2String((MemoryUsed) / 1000.0, 1);
+	MemoryChange.double2String(double(MemoryDif), 0, 6);
 	Memory += "  bytes= ";
 	Memory += MemorySize;
-	Memory += "M (dif:";
-	CmString MemoryDif;
-	MemoryDif.double2String((double)(MemoryAllocated - MemoryReleased - MemoryOccupied), 0, 6);
-	Memory += MemoryDif;
+	Memory += "k (dif:";
+	Memory += MemoryChange;
 	Memory += ")";
-	// update state
-	ItemsOccupied = ItemsAllocated - ItemsReleased;
-	MemoryOccupied = MemoryAllocated - MemoryReleased;
+
+	// clear items of type
 	if (_isClearType){
 		ItemsOfTypeAllocated = 0;
 		ItemsOfTypeReleased = 0;

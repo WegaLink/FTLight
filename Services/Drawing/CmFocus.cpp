@@ -142,12 +142,10 @@ bool CmFocus::verifyBaseStatistics()
   if( !BaseStatistics )
   {
     // Check if valid start/end time was set
-    if( !(StartTime < EndTime) )
-      return false;
+    if( !(StartTime < EndTime) ) return false;
 
     // Check for valid interval length/count
-    if( IntervalLength == 0 && IntervalCount == 0 )
-      return false;
+    if( IntervalLength == 0 && IntervalCount == 0 ) return false;
 
     // Determine interval length/count if needed
     if( IntervalLength == 0 && IntervalCount > 0 )
@@ -157,15 +155,13 @@ bool CmFocus::verifyBaseStatistics()
       IntervalCount = int32(((EndTime - StartTime) / IntervalLength + 1));
 
     // Check whether valid values for interval length/count are available
-    if( IntervalLength == 0 || IntervalCount == 0 )
-      return false;
+    if( IntervalLength == 0 || IntervalCount == 0 ) return false;
 
     // Allocate a base statistics array
     BaseStatistics = new CmFocusBaseStatistics[size_t(IntervalCount)];
 
     // Check if a base statistics array was successfully allocated
-    if( !BaseStatistics )
-      return false;
+    if( !BaseStatistics ) return false;
 
     // Initialize base statistics array
     memset(BaseStatistics, 0, size_t(IntervalCount * sizeof(CmFocusBaseStatistics)));
@@ -183,12 +179,10 @@ bool CmFocus::verifyBaseStatistics()
 bool CmFocus::addDataPoint(int64 Timestamp, int64 Value, int64 PreviousCount)
 {
   // Check whether the data point belongs to current focus
-  if( Timestamp < StartTime || Timestamp > EndTime )
-    return false;
+  if( Timestamp < StartTime || Timestamp > EndTime ) return false;
 
   // Check base statistics array
-  if( !verifyBaseStatistics() )
-    return false;
+  if( !verifyBaseStatistics() ) return false;
 
   // Determine interval which the data point belongs to
   int64 IntervalIndex = (Timestamp - StartTime) / IntervalLength;
@@ -198,8 +192,7 @@ bool CmFocus::addDataPoint(int64 Timestamp, int64 Value, int64 PreviousCount)
   if( Statistics->PreviousCount == 0 )
     Statistics->PreviousCount = PreviousCount;
   else
-  if( Statistics->PreviousCount != PreviousCount )
-    return false;
+  if( Statistics->PreviousCount != PreviousCount ) return false;
 
   // Incorporate a data value into appropriate interval's statistics
   {
@@ -229,8 +222,7 @@ bool CmFocus::addDataPoint(int64 Timestamp, int64 Value, int64 PreviousCount)
 CmFocusBaseStatistics * CmFocus::getFocusBaseStatistics(int32 IntervalIndex)
 {
   // Check index and base statistics array
-  if( IntervalIndex >= IntervalCount || BaseStatistics == NULL )
-    return NULL;
+  if( IntervalIndex >= IntervalCount || BaseStatistics == NULL ) return NULL;
 
   // Return requested base statistics
   return &BaseStatistics[IntervalIndex];
@@ -264,8 +256,7 @@ CmFocusBaseCascaded::~CmFocusBaseCascaded()
 bool CmFocusBaseCascaded::addDataInterval(int64 Timestamp, CmFocusBaseStatistics *Statistics)
 {
   // Check whether the data point belongs to current focus
-  if( Timestamp < StartTime || Timestamp > EndTime )
-    return false;
+  if( Timestamp < StartTime || Timestamp > EndTime ) return false;
 
   // Check whether the focus components are available
   if( FocusMin == NULL || FocusMax == NULL || FocusTotal == NULL || FocusTravel == NULL )

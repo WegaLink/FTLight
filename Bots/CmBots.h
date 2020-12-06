@@ -101,7 +101,7 @@ public:
 	/** Profile.
 	*  The profile values will be returned/updated/written/read to/from disk
 	*/
-	CmBotsProfile& getProfile();
+	CmBotsProfile& pro();
 	bool updateProfile(CmStringFTL& _ProFTL);
 	bool writeProfile(CmString _ConfigPath);
 	bool readProfile(CmString _ConfigPath);
@@ -111,7 +111,7 @@ public:
 	/** Dynamic.
 	*   The dynamic values will be returned/updated/written.
 	*/
-	CmBotsDynamic& getDynamic();
+	CmBotsDynamic& dyn();
 	bool updateDynamic(CmStringFTL& _dyn);
 	bool writeDynamic(CmString _ConfigPath);
 
@@ -119,7 +119,7 @@ public:
 	/** Control.
 	*   The control values will be returned/updated/written.
 	*/
-	CmBotsControl& getControl();
+	CmBotsControl& ctr();
 	bool updateControl(CmStringFTL& _ctr);
 	bool writeControl(CmString _ConfigPath);
 
@@ -127,7 +127,7 @@ public:
 	/** Message.
 	*   The message (event) values will be returned/updated/written.
 	*/
-	CmBotsMessage& getMessage();
+	CmBotsMessage& msg();
 	bool updateMessage(CmStringFTL& _msg);
 	bool writeMessage(CmString _ConfigPath);
 
@@ -135,7 +135,7 @@ public:
 	/** Polling.
 	*   The polling values will be returned/updated/written.
 	*/
-	CmBotsPolling& getPolling();
+	CmBotsPolling& pln();
 	bool updatePolling(CmStringFTL& _pln);
 	bool writePolling(CmString _ConfigPath);
 
@@ -143,7 +143,7 @@ public:
 	/** Reading.
 	*   The reading values will be returned/updated/written.
 	*/
-	CmBotsReading& getReading();
+	CmBotsReading& rdn();
 	bool updateReading(CmStringFTL& _rdn);
 	bool writeReading(CmString _ConfigPath);
 
@@ -165,7 +165,7 @@ public:
 	/** setBotName/getBotUURI
 	*   A module name will be added to the ServicUURI for getting a BotUURI.
 	*/
-	CmString& setBotName(CmString& _BotName);
+	CmString& setBotName(CmString _BotName);
 	CmString& getBotUURI();
 
 //------Service-access-by-PROVIDER--------------------------------------------
@@ -190,7 +190,7 @@ private:
 // BOT_CmBots.
 //============================================================================
 //
-class BOT_CmBots : public SERVICE_CmBots, CmValueINI
+class BOT_CmBots : public SERVICE_CmBots, public CmValueINI
 {
 public:
 	BOT_CmBots(const int8 *_Init);

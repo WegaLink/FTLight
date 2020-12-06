@@ -325,7 +325,7 @@ bool SERVICE_CmBots::processInformation(CmString& _Information)
 //------CONFIGURATION-MANAGEMENT-functions------------------------------------
 
 // profile
-CmBotsProfile& SERVICE_CmBots::getProfile()
+CmBotsProfile& SERVICE_CmBots::pro()
 {
 	return Provider().pro();
 }
@@ -346,7 +346,7 @@ bool SERVICE_CmBots::setDefaultProfile()
 	return Provider().setDefaultProfile();
 }
 // dynamic
-CmBotsDynamic& SERVICE_CmBots::getDynamic()
+CmBotsDynamic& SERVICE_CmBots::dyn()
 {
 	return Provider().dyn();
 }
@@ -359,7 +359,7 @@ bool SERVICE_CmBots::writeDynamic(CmString _ConfigPath)
 	return Provider().writeDynamic(_ConfigPath);
 }
 // control
-CmBotsControl& SERVICE_CmBots::getControl()
+CmBotsControl& SERVICE_CmBots::ctr()
 {
 	return Provider().ctr();
 }
@@ -372,7 +372,7 @@ bool SERVICE_CmBots::writeControl(CmString _ConfigPath)
 	return Provider().writeControl(_ConfigPath);
 }
 // message
-CmBotsMessage& SERVICE_CmBots::getMessage()
+CmBotsMessage& SERVICE_CmBots::msg()
 {
 	return Provider().msg();
 }
@@ -385,7 +385,7 @@ bool SERVICE_CmBots::writeMessage(CmString _ConfigPath)
 	return Provider().writeMessage(_ConfigPath);
 }
 // polling
-CmBotsPolling& SERVICE_CmBots::getPolling()
+CmBotsPolling& SERVICE_CmBots::pln()
 {
 	return Provider().pln();
 }
@@ -398,7 +398,7 @@ bool SERVICE_CmBots::writePolling(CmString _ConfigPath)
 	return Provider().writePolling(_ConfigPath);
 }
 // reading
-CmBotsReading& SERVICE_CmBots::getReading()
+CmBotsReading& SERVICE_CmBots::rdn()
 {
 	return Provider().rdn();
 }
@@ -431,7 +431,7 @@ CmUURI& SERVICE_CmBots::getUURI()
 {
 	return Provider().getUURI();
 }
-CmString& SERVICE_CmBots::setBotName(CmString& _BotName)
+CmString& SERVICE_CmBots::setBotName(CmString _BotName)
 {
 	// store service and module UURI in the SERVICE plugnode
 	CmPlugNode::ServiceUURI = Provider().getUURI().getText();

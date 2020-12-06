@@ -380,6 +380,8 @@ bool PROVIDER_AppCm::readProfile(CmString _ConfigPath)
 	pro.TouchChart.pro().TitleFontSize = pro.TouchChartFontSize.getNumAsDouble();
 	pro.TouchChart.pro().TitleFontColor = CmString(pro.TouchChartFontColor);
 	pro.TouchChart.pro().SignalLineColor = CmString(pro.TouchChartSignalColor);
+	// update Bots config
+	pro.Bot1.setBotName(CmString(pro.Bot1));
 
 	return true;
 }

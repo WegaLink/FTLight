@@ -425,8 +425,8 @@ AppCmDynamic dyn =
 	UURI_AppCm"/Dynamic/"VERSION_AppCm,
 	"/timestamp",
 	">loglevel",
-	"message",
-	"context",
+	">message",
+	">context",
 
 };
 #endif

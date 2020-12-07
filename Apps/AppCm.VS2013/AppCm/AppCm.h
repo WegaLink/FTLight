@@ -47,7 +47,7 @@ namespace AppCm
 	#define CREATED_AppCm					"2020-03-30"
 	// UURI 
 	#define UURI_AppCm						CREATOR_AppCm"."PROGRAM_AppCm
-	#define UURI_SERVICE_AppCm		"/"VERSION_AppCm
+	#define UURI_SERVICE_AppCm		UURI_AppCm"/"VERSION_AppCm
 	#define UURI_PROVIDER_AppCm		UURI_SERVICE_AppCm"_"CREATED_AppCm
 
 	// forward declarations

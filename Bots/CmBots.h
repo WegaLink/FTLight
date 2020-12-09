@@ -45,7 +45,7 @@ namespace CmBots
 	#define CREATED_CmBots			"2020-12-06"
 	// UURI
 	#define UURI_CmBots							CREATOR_CmBots"."PROGRAM_CmBots
-	#define UURI_SERVICE_CmBots			"/"VERSION_CmBots
+	#define UURI_SERVICE_CmBots			UURI_CmBots"/"VERSION_CmBots
 	#define UURI_PROVIDER_CmBots		UURI_SERVICE_CmBots"_"CREATED_CmBots
 
 	// forward declarations

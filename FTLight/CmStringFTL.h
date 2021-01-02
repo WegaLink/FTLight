@@ -35,6 +35,7 @@ SOFTWARE.
 #include "Services/Basic/CmString.h"
 #include "Services/Basic/CmTime.h"
 
+// NOTE: All Cosmos related classes must be in the Cosmos namespace
 namespace Cosmos
 {
 
@@ -379,7 +380,7 @@ class CmStringFTL : public CmString, public CmParallelFTL
 public:
 	CmStringFTL(CmStringFTL* _Parent = NULL);
 	CmStringFTL(const int8* _Text, CmStringFTL* _Parent = NULL);
-	~CmStringFTL();
+	virtual ~CmStringFTL();
 
 public:
 	/** unit test for CmStringFTL */

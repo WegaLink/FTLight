@@ -1167,6 +1167,18 @@ bool CmValueFTL::testCmValueFTL()
 	if (TestDouble_3 != double(Val))	{ printf("\n 'double(3)' failed: %f != %f", TestDouble_3, double(Val)); Result = false; }
 	if (TestFloat_3 != float(Val))	{ printf("\n 'float(3)' failed: %f != %f", TestFloat_3, float(Val)); Result = false; }
 
+	// test mixed conversions
+	Val.setText(TestString);
+	if (TestInt64 != int64(Val)){ printf("\n 'int64' failed: %d != %d", TestInt64, int64(Val)); Result = false; }
+	if (TestInt32 != int32(Val)){ printf("\n 'int32' failed: %d != %d", TestInt32, int32(Val)); Result = false; }
+	if (TestInt16 != int16(Val)){ printf("\n 'int16' failed: %d != %d", TestInt16, int16(Val)); Result = false; }
+	if (TestInt8  != int8(Val)) { printf("\n 'int8'  failed: %d != %d", TestInt8,  int8(Val)); Result = false; }
+	if (TestUInt32 != uint32(Val)){ printf("\n 'uint32' failed: %d != %d", TestUInt32, uint32(Val)); Result = false; }
+	if (TestUInt16 != uint16(Val)){ printf("\n 'uint16' failed: %d != %d", TestUInt16, uint32(Val)); Result = false; }
+	if (TestUInt8 != uint8(Val)) { printf("\n 'uint8'  failed: %d != %d", TestUInt8, uint32(Val)); Result = false; }
+	if (TestFloat != float(Val)) { printf("\n 'float' failed: %f != %f", TestFloat, float(Val)); Result = false; }
+	if (TestDouble_3 != double(Val)) { printf("\n 'double(3)' failed: %f != %f", TestDouble_3, double(Val)); Result = false; }
+
 	//
 	// test data formats retrieved from a FTLight structure
 	// 
@@ -2671,16 +2683,6 @@ bool CmValueFTL::asDataFormat(CmDataFormat _DataFormat, int32 _Precision, int32 
 		// number string goes to TextX, binary format is written to Text
 		if (false == decodeNum(_DataFormat)) return false;
 	}
-	else if (DATAFORMAT_FTLight != DataFormat && TYPEFTL_NUMBER == TypeX){
-		// check for string representation in TextX field
-		if (NULL != TextX && 0 != LengthX){
-			// restore string representation
-			setLength((uint32)LengthX);
-			memcpy(getBuffer(), TextX, LengthX);
-		}
-		// binary format is written to Text, number string is preserved in TextX
-		if (false == decodeNum(_DataFormat)) return false;
-	}
 	// convert FTLight/binary format
 	else if (TYPEFTL_NONE == TypeX || (0==LengthX && NULL==TextX)){
 		// check for binary data
@@ -2996,7 +2998,7 @@ bool CmValueFTL::getRangeY(double& _Ymin, double& _Ymax)
 *
 * [`]=enabled, [i]=default, [0,l]=disabled, [0,l,0/1]=position x/y, [1,l]=text, [2,l]=size, [3,l]=rotation, [4,l]=color, [5,l]=font, [6,l]=alpha
 */
-bool CmValueFTL::setChartText(int32 _Index, const CmPoint2D& _Position, const CmString& _Text, double _FontSize, double _Rotation, const CmString& _Color, double _Alpha, const CmString& _Font)
+bool CmValueFTL::setChartText(int32& _Index, const CmPoint2D& _Position, const CmString& _Text, double _FontSize, double _Rotation, const CmString& _Color, double _Alpha, const CmString& _Font)
 {
 	CmMatrix& M = getMatrix();
 	// provide for having default values always available 
@@ -3011,7 +3013,7 @@ bool CmValueFTL::setChartText(int32 _Index, const CmPoint2D& _Position, const Cm
 	M(4, _Index) = _Color;
 	M(5, _Index) = _Alpha;
 	M(6, _Index) = _Font;
-
+	_Index++;
 	return true;
 }
 bool CmValueFTL::setChartTextWrap(int32& _Index, const CmPoint2D& _Position, const int32 _PosWrap, const CmString& _Text, double _FontSize, double _Rotation, const CmString& _Color, double _Alpha, const CmString& _Font)
@@ -3026,7 +3028,7 @@ bool CmValueFTL::setChartTextWrap(int32& _Index, const CmPoint2D& _Position, con
 	double RatioFontSize2Width = 1.28;
 	int32 LineLength = _FontSize > 0 ? int32((_PosWrap - _Position.x()) * RatioFontSize2Width / _FontSize) : TextLength;
 	int32 PosY = int32(_Position.y());
-	double LineDistance = 1.3;
+	const double LineDistance = 1.3;
 	// write all lines
 	for (int32 i = 0; i < TextLength; i += LineLength){
 		// generate a line of text
@@ -3427,6 +3429,11 @@ CmString CmValueINI::getValue(CmString _NameValue)
 
 	return _NameValue;
 }
+bool CmValueINI::setDefaultInfoFTL(CmValueINI& _ValueINI)
+{
+	CmValueINI DummyReturn;
+	return setDefaultInfoFTL(_ValueINI, DummyReturn);
+}
 bool CmValueINI::setDefaultInfoFTL(CmValueINI& _ValueINI, CmValueINI& _Return)
 {
 	// check initialization string availability
@@ -3441,12 +3448,34 @@ bool CmValueINI::getInfoFTL(CmStringFTL& _InfoFTL, CmValueINI& /*_Return*/)
 	// check initialization string availability
 	if (NULL == StringINI) return false;
 	_InfoFTL.processStringFTL(*StringINI);
-	// synchronize _InfoFTL with the control ValueFTL array
 
+	// synchronize _InfoFTL with the control ValueFTL array
 
 
 	return true;
 }
+bool CmValueINI::setStringINI(CmString& _StringINI)
+{
+	// create StringINI 
+	if (NULL == StringINI){
+		StringINI = CmString::allocateMemory<CmString>(1, isCmString);
+	}
+	// set StringINI 
+	*StringINI = _StringINI;
+
+	return true;
+}
+CmString* CmValueINI::getStringINI()
+{
+	return StringINI;
+}
+bool CmValueINI::clearWorkspace()
+{
+	MatrixINI = NULL;
+	StringINI = NULL;
+	return true;
+}
+
 CmValueFTL& CmValueINI::getLogLevel()
 {
 	return *this;

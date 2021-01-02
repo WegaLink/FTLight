@@ -83,7 +83,7 @@ public:
 	 *
 	 * NOTE: Message must not be 'const' in order to be processed by readLine().
 	 */
-	virtual bool processMessage(CmStream& Message);
+	virtual bool processMessage(CmStream& _Message);
 
 public:
   /** writeData.
@@ -97,7 +97,7 @@ public:
    *  @param Position the start address for writing to the stream (0 = current)
    *  @return whether writing succeeded or not
    */
-  bool writeData(uint8 *Data,int64 Size,int64 Position =0);
+	bool writeData(uint8 *_Data, int64 _Size, int64 _Position = 0);
 
   /** writeLine.
    *  A string will be appended to the end of the stream and a 'new line' (0D0A)
@@ -106,7 +106,7 @@ public:
    *  @param Line a string that will be transferred to the stream buffer
    *  @return whether writing the line succeeded or not
    */
-	bool writeLine(const CmString& Line);
+	bool writeLine(const CmString& _Line);
 
   /** readLine.
    *  A string will be returned spanning the buffer positions from current read
@@ -124,7 +124,7 @@ public:
    *  @param Line the string that was extracted from stream buffer
    *  @return the resulting next read position in the stream
    */
-	int64 readLine(CmString& Line);
+	int64 readLine(CmString& _Line);
 
   /** isReadLine.
    *  The stream buffer will be checked whether there is a next line available
@@ -137,14 +137,14 @@ public:
    *   defined function whenever a next complete line has arrived from a peer
    *   CmStream instance.
    */
-	bool registerStreamReceiver(CmStream* StreamReceiver);
+	bool registerStreamReceiver(CmStream* _StreamReceiver);
 
   /**  unregisterStreamReceiver.
    *   A stream receiver function will be unregistered. The value of the 
    *   StreamReceiver has to match the value when registering the
    *   callback. Otherwise the function will fail.
    */
-	bool unregisterStreamReceiver(CmStream* StreamReceiver);
+	bool unregisterStreamReceiver(CmStream* _StreamReceiver);
 
 private:
   // Stream buffer (a data window)

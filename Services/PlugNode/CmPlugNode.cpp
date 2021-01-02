@@ -215,6 +215,7 @@ bool CmPlugNode::testPlugNode()
 	CmString ClientInfoLast;
 	CmString ServerInfoLast;
 	CmString EmptyString;
+	const bool isControl = false;
 	Log += "\n sendInfo() local:                    ";
 	Time.startRuntime();
 	for (int32 c = 0; c < ComCyclesLocal; c++){
@@ -222,8 +223,8 @@ bool CmPlugNode::testPlugNode()
 		ClientInfoSend += c;
 		ServerInfoSend = ServerInfo;
 		ServerInfoSend += c;
-		Client.sendInfo(ClientInfoSend, ServerUURI);
-		Server.sendInfo(ServerInfoSend, ClientUURI);
+		Client.sendInfo(ClientInfoSend, ServerUURI, isControl);
+		Server.sendInfo(ServerInfoSend, ClientUURI, isControl);
 		if (Server.getLastInfo() != ClientInfoSend){
 			isSuccess = false;
 			Log += "\n   server-";
@@ -373,13 +374,13 @@ void CmPlugNode::initPlugNode(const CmPlugNode& _PlugNode)
 		setContactID(ContactID);
 
     // Initialize socket subsystem
-    WORD wVersionRequested = MAKEWORD(2,0);
+    WORD wVersionRequested = MAKEWORD(2,2);
     WSADATA wsaData;
 
     if( NOERROR == WSAStartup( wVersionRequested, &wsaData ) )
     {
       // Confirm that the WinSock DLL supports 2.0. or higher versions
-      if ( LOBYTE( wsaData.wVersion ) != 2 || HIBYTE( wsaData.wVersion ) != 0 )
+      if ( LOBYTE( wsaData.wVersion ) != 2 || HIBYTE( wsaData.wVersion ) != 2 )
       {
           // We couldn't find a usable WinSock DLL
           WSACleanup();

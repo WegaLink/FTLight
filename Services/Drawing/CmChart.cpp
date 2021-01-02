@@ -42,12 +42,16 @@ CmChart::CmChart(const int8 *_Init)
 	:CmValueINI(_Init)
 {
 	// initialize workspace
+	TextCount = 0;
+	LockGUI = NULL;
+	isDraw = NULL;
 	Pro = NULL;
 	Dyn = NULL;
 
 	// initialize default CmValueINI arrays
 	CmValueINI::setDefaultInfoFTL(pro_.UURI, dyn_.LogLevel);
 	CmValueINI::setDefaultInfoFTL(dyn_.UURI, dyn_.LogLevel);
+
 }
 CmChart::~CmChart()
 {
@@ -56,10 +60,9 @@ CmChart::~CmChart()
 
 //------Layout----------------------------------------------------------------
 
-bool CmChart::drawLayout(bool _isChartOff)
+bool CmChart::clearChart(CmString _Title)
 {
-	int32 TextCount = 0;
-	int32 LineCount = 0;
+	LockGUI != NULL ? LockGUI->enterSerialize() : 0;
 
 	// stop drawing
 	dyn().Init.setDrawingEnabled(false);
@@ -68,9 +71,55 @@ bool CmChart::drawLayout(bool _isChartOff)
 	dyn().Init.setChartBackground(pro().BackgroundColor, pro().BackgroundAlpha);
 
 	// title
+	TextCount = 0;
+	dyn().Text.getMatrix().clearMatrix();
+	CmPoint2D TitlePos(float(pro().TitleLeft), float(dyn().Height) - float(pro().TitleTop));
+	dyn().Text.setChartText(TextCount, TitlePos, _Title, pro().TitleFontSize, -1, pro().TitleFontColor, pro().TitleFontAlpha, pro().TitleFont);
+
+	// clear grid
+	dyn().LayoutGrid.getMatrix().clearMatrix();
+	dyn().LayoutLabels.getMatrix().clearMatrix();
+
+	// clear signals
+	dyn().SignalPoints.getMatrix().clearMatrix();
+	dyn().SignalTags.getMatrix().clearMatrix();
+
+	// enable drawing again
+	dyn().Init.setDrawingEnabled(true);
+
+	LockGUI != NULL ? LockGUI->leaveSerialize() : 0;
+
+	return true;
+}
+bool CmChart::updateChart()
+{
+
+	if (isDraw != NULL){
+		LockGUI != NULL ? LockGUI->enterSerialize() : 0;
+		*isDraw = true;
+		LockGUI != NULL ? LockGUI->leaveSerialize() : 0;
+	}
+
+	return true;
+}
+bool CmChart::drawLayout(bool _isChartOff)
+{
+	LockGUI != NULL ? LockGUI->enterSerialize() : 0;
+
+	// stop drawing
+	dyn().Init.setDrawingEnabled(false);
+
+	// background
+	dyn().Init.setChartBackground(pro().BackgroundColor, pro().BackgroundAlpha);
+
+	// title
+	TextCount = 0;
+	dyn().Text.getMatrix().clearMatrix();
 	CmPoint2D TitlePos(float(pro().TitleLeft), float(dyn().Height) - float(pro().TitleTop));
 	dyn().Text.setChartText(TextCount, TitlePos, pro().Title, pro().TitleFontSize, -1, pro().TitleFontColor, pro().TitleFontAlpha, pro().TitleFont);
 
+	// chart
+	LineCount = 0;
 	if (_isChartOff){
 		// chart is off, thus draw only a transparent chart background
 		const double Transparency = 0.3;
@@ -89,28 +138,54 @@ bool CmChart::drawLayout(bool _isChartOff)
 	// enable drawing again
 	dyn().Init.setDrawingEnabled(true);
 
+	LockGUI != NULL ? LockGUI->leaveSerialize() : 0;
+
+	return true;
+}
+
+bool CmChart::addText(CmString _Text)
+{
+	LockGUI != NULL ? LockGUI->enterSerialize() : 0;
+	
+	// stop drawing
+	dyn().Init.setDrawingEnabled(false);
+
+	CmPoint2D TextPos(float(pro().TextLeft), float(dyn().Height) - float(pro().TextTop) - TextCount * float(pro().TextSpace));
+	if (false == dyn().Text.setChartText(TextCount, TextPos, _Text, pro().TextFontSize, -1, pro().TextFontColor, pro().TextFontAlpha, pro().TextFont)){ LockGUI->leaveSerialize(); return false; }
+
+	// enable drawing again
+	dyn().Init.setDrawingEnabled(true);
+
+	LockGUI != NULL ? LockGUI->leaveSerialize() : 0;
+
 	return true;
 }
 
 bool CmChart::drawSignal(CmSignalType _SignalType)
 {
+	LockGUI != NULL ? LockGUI->enterSerialize() : 0;
+	
 	// test signal
 	if (SIGNAL_Curve != _SignalType){
 		// clear chart
 		dyn().SignalPoints.getMatrix().clearMatrix();
 		// baseline
 		pro().SignalType = SIGNAL_Baseline;
-		if (false == drawSignalTest()) return false;
+		if (false == drawSignalTest()){ LockGUI->leaveSerialize(); return false; }
 		// signal line
 		pro().SignalType = int32(_SignalType);
-		if (false == drawSignalTest()) return false;
+		if (false == drawSignalTest()){ LockGUI->leaveSerialize(); return false; }
 	}
+
+	LockGUI != NULL ? LockGUI->leaveSerialize() : 0;
 
 	return true;
 }
 
 bool CmChart::drawSignalTest()
 {
+	LockGUI != NULL ? LockGUI->enterSerialize() : 0;
+
 	// get signal params
 	CmSignalType SignalType = CmSignalType(int32((pro().SignalType)));
 	float ChartOffset = float(pro().CanvasLeft) + 1;
@@ -164,11 +239,15 @@ bool CmChart::drawSignalTest()
 	// enable drawing again
 	dyn().Init.setDrawingEnabled(true);
 
+	LockGUI != NULL ? LockGUI->leaveSerialize() : 0;
+
 	return true;
 }
 
 bool CmChart::drawSignalTest(double _Phase1, double _Phase2)
 {
+	LockGUI != NULL ? LockGUI->enterSerialize() : 0;
+	
 	// background
 	bool Return = dyn().Init.setChartBackground(pro().BackgroundColor, pro().BackgroundAlpha);
 
@@ -198,8 +277,13 @@ bool CmChart::drawSignalTest(double _Phase1, double _Phase2)
 
 	// display phase information
 	int32 TextCount = 0;
-	Return == true ? Return = dyn().Text.setChartText(TextCount++, CmPoint2D(Left, Top -= TopFirst), PhaseLocal) : 0;
-	Return == true ? Return = dyn().Text.setChartText(TextCount++, CmPoint2D(Left, Top -= Space), PhaseRemote) : 0;
+	Return == true ? Return = dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= TopFirst), PhaseLocal) : 0;
+	Return == true ? Return = dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= Space), PhaseRemote) : 0;
+
+	// enable drawing again
+	dyn().Init.setDrawingEnabled(true);
+
+	LockGUI != NULL ? LockGUI->leaveSerialize() : 0;
 
 	return Return;
 }
@@ -212,6 +296,14 @@ double CmChart::getSignalPhaseOffsetDeg()
 }
 
 //------CONFIGURATION-MANAGEMENT-functions------------------------------------
+
+// GUI synchronization
+bool CmChart::setLockGUI(CmParallelFTL* _LockGUI, bool* _isDraw)
+{
+	LockGUI = _LockGUI;
+	isDraw = _isDraw;
+	return NULL == LockGUI ? false : true;
+}
 
 // Profile
 ChartProfile& CmChart::pro()

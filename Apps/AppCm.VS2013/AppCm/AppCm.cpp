@@ -192,10 +192,10 @@ bool PROVIDER_AppCm::drawTouch()
 	const float Space = 25;
 	const float FontSize = 15;
 
-	pro.TouchChart.dyn().Text.setChartText(TextCount++, CmPoint2D(Left, Top -= Space), PhaseLocal, FontSize);
-	pro.TouchChart.dyn().Text.setChartText(TextCount++, CmPoint2D(Left, Top -= Space), PhaseRemote, FontSize);
+	pro.TouchChart.dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= Space), PhaseLocal, FontSize);
+	pro.TouchChart.dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= Space), PhaseRemote, FontSize);
 	Top -= Space;
-	pro.TouchChart.dyn().Text.setChartText(TextCount++, CmPoint2D(Left, Top -= Space), Bot1, FontSize);
+	pro.TouchChart.dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= Space), Bot1, FontSize);
 
 	// enable drawing
 	pro.TouchChart.dyn().Init.setDrawingEnabled(true);
@@ -356,7 +356,7 @@ bool PROVIDER_AppCm::updateProfile(CmStringFTL& _ProFTL)
 bool PROVIDER_AppCm::writeProfile(CmString _ConfigPath)
 { 
 	CmStringFTL ProFTL;
-	NULL != pro.UURI.StringINI ? ProFTL.processStringFTL(*pro.UURI.StringINI) : 0;
+	NULL != pro.UURI.getStringINI() ? ProFTL.processStringFTL(*pro.UURI.getStringINI()) : 0;
 	return pro.UURI.writeInfoFTL(_ConfigPath, ProFTL, getReturn());
 }
 bool PROVIDER_AppCm::readProfile(CmString _ConfigPath)
@@ -401,7 +401,7 @@ bool PROVIDER_AppCm::updateDynamic(CmStringFTL& _DynFTL)
 bool PROVIDER_AppCm::writeDynamic(CmString _ConfigPath)
 {
 	CmStringFTL DynFTL;
-	NULL != dyn.UURI.StringINI ? DynFTL.processStringFTL(*dyn.UURI.StringINI) : 0;
+	NULL != dyn.UURI.getStringINI() ? DynFTL.processStringFTL(*dyn.UURI.getStringINI()) : 0;
 	return dyn.UURI.writeInfoFTL(_ConfigPath, DynFTL, getReturn());
 }
 // Control
@@ -416,7 +416,7 @@ bool PROVIDER_AppCm::updateControl(CmStringFTL& _CtrFTL)
 bool PROVIDER_AppCm::writeControl(CmString _ConfigPath)
 {
 	CmStringFTL CtrFTL;
-	NULL != ctr.UURI.StringINI ? CtrFTL.processStringFTL(*ctr.UURI.StringINI) : 0;
+	NULL != ctr.UURI.getStringINI() ? CtrFTL.processStringFTL(*ctr.UURI.getStringINI()) : 0;
 	return ctr.UURI.writeInfoFTL(_ConfigPath, CtrFTL, getReturn());
 }
 // Message
@@ -431,7 +431,7 @@ bool PROVIDER_AppCm::updateMessage(CmStringFTL& _MsgFTL)
 bool PROVIDER_AppCm::writeMessage(CmString _ConfigPath)
 {
 	CmStringFTL MsgFTL;
-	NULL != msg.UURI.StringINI ? MsgFTL.processStringFTL(*msg.UURI.StringINI) : 0;
+	NULL != msg.UURI.getStringINI() ? MsgFTL.processStringFTL(*msg.UURI.getStringINI()) : 0;
 	return msg.UURI.writeInfoFTL(_ConfigPath, MsgFTL, getReturn());
 }
 // Polling
@@ -446,7 +446,7 @@ bool PROVIDER_AppCm::updatePolling(CmStringFTL& _PlnFTL)
 bool PROVIDER_AppCm::writePolling(CmString _ConfigPath)
 {
 	CmStringFTL PlnFTL;
-	NULL != pln.UURI.StringINI ? PlnFTL.processStringFTL(*pln.UURI.StringINI) : 0;
+	NULL != pln.UURI.getStringINI() ? PlnFTL.processStringFTL(*pln.UURI.getStringINI()) : 0;
 	return pln.UURI.writeInfoFTL(_ConfigPath, PlnFTL, getReturn());
 }
 // Reading
@@ -461,7 +461,7 @@ bool PROVIDER_AppCm::updateReading(CmStringFTL& _RdnFTL)
 bool PROVIDER_AppCm::writeReading(CmString _ConfigPath)
 {
 	CmStringFTL RdnFTL;
-	NULL != rdn.UURI.StringINI ? RdnFTL.processStringFTL(*rdn.UURI.StringINI) : 0;
+	NULL != rdn.UURI.getStringINI() ? RdnFTL.processStringFTL(*rdn.UURI.getStringINI()) : 0;
 	return rdn.UURI.writeInfoFTL(_ConfigPath, RdnFTL, getReturn());
 }
 

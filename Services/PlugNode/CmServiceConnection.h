@@ -151,16 +151,16 @@ public:
 
 public:
 	/** initServiceConnection. Set UURI and connection info */
-	void initServiceConnection(const CmUURI *ServiceUURI, CmConnectionInfo *ConnectionInfo = NULL);
+	void initServiceConnection(const CmUURI *_ServiceUURI, CmConnectionInfo *_ConnectionInfo = NULL);
 
 public:
 	/** sendCommand.
 	*   A command will be transferred to peer.
 	*/
-	bool sendCommand(CMCOMMAND Command);
-	bool sendCommand(CMCOMMAND Command, CmServiceConnection *ServiceConnection1);
-	bool sendCommand(CMCOMMAND Command, CmServiceConnection *ServiceConnection1, CmServiceConnection *ServiceConnection2);
-	bool sendCommand(CMCOMMAND Command, CmServiceConnection *ServiceConnection1, CmServiceConnection *ServiceConnection2, CmServiceConnection *ServiceConnection3);
+	bool sendCommand(CMCOMMAND _Command);
+	bool sendCommand(CMCOMMAND _Command, CmServiceConnection *_ServiceConnection1);
+	bool sendCommand(CMCOMMAND _Command, CmServiceConnection *_ServiceConnection1, CmServiceConnection *_ServiceConnection2);
+	bool sendCommand(CMCOMMAND _Command, CmServiceConnection *_ServiceConnection1, CmServiceConnection *_ServiceConnection2, CmServiceConnection *_ServiceConnection3);
 
 public:
 	/** sendMessage.
@@ -168,7 +168,7 @@ public:
 	 *
 	 * NOTE: Message must not be 'const' in order to be processed by readLine().
 	 */
-	bool sendMessage(CmString& Message);
+	bool sendMessage(CmString& _Message);
 
 public:
 	/** maintainNetwork.
@@ -177,7 +177,7 @@ public:
 	*
 	* NOTE: Request must not be 'const' in order to be processed by readLine().
 	*/
-	bool maintainNetwork(CmString& Request);
+	bool maintainNetwork(CmString& _Request);
 
 public:
 	/** switchToIdle.
@@ -196,19 +196,19 @@ public:
    *  The peer's SERVICE UURI will be checked against a specified UURI. If the
    *  UURIs match then a pointer to RxData stream will be returned, otherwise NULL.
    */
-	CmStream * isPeerServiceUURI(const CmUURI& ServiceUURI);
+	CmStream * isPeerServiceUURI(const CmUURI& _ServiceUURI);
 
 public:
 	/** checkin.
    *  A service connection will be established between two PlugNodes
    */
-	void openConnection(const CmUURI& NetworkUURI, CmServiceConnection *PeerConnection, const CmConnectionInfo& PeerContactInfo);
+	void openConnection(const CmUURI& _NetworkUURI, CmServiceConnection *_PeerConnection, const CmConnectionInfo& _PeerContactInfo);
 
 public:
 	/** set/getPeerInfo.
 	 *  The peer's connection information will be stored/retrieved
 	 */
-	void setPeerInfo(const CmConnectionInfo& PeerInfo);
+	void setPeerInfo(const CmConnectionInfo& _PeerInfo);
 	CmServiceAccess *getPeerContactAddress();
 	int64 getPeerContactID();
 
@@ -216,7 +216,7 @@ public:
 	/** set/getState.
 	*   The state of a connection will be stored/retrieved
 	*/
-	void setState(CMSTATE ConnectionState);
+	void setState(CMSTATE _ConnectionState);
 	CMSTATE getState();
 	CmString reportState();
 
@@ -230,7 +230,7 @@ public:
 	/**  registerCommunicationReceiver.
 	*   A communication receiver will be registered against RxInfo communication.
 	*/
-	bool registerCommunicationReceiver(CmCommunication* CommunicationReceiver, CMCONN ConnectionID);
+	bool registerCommunicationReceiver(CmCommunication* _CommunicationReceiver, CMCONN _ConnectionID);
 
 public:
 	/**  unregisterCommunicationReceiver.
@@ -238,7 +238,7 @@ public:
 	*   CommunicationReceiver has to match the value when registering 
 	*   the callback. Otherwise the function will fail.
 	*/
-	bool unregisterCommunicationReceiver(CmCommunication* CommunicationReceiver, CMCONN ConnectionID);
+	bool unregisterCommunicationReceiver(CmCommunication* _CommunicationReceiver, CMCONN _ConnectionID);
 
 //--------conversion-functions------------------------------------------------
 
@@ -291,7 +291,7 @@ private:
 class CmNetworkConnection : CmServiceConnection
 {
 public:
-  CmNetworkConnection(const CmUURI *ServiceUURI, CmConnectionInfo *ConnectionInfo);
+	CmNetworkConnection(const CmUURI *_ServiceUURI, CmConnectionInfo *_ConnectionInfo);
   ~CmNetworkConnection();
 
 
@@ -309,7 +309,7 @@ private:
 class CmLocalConnection : CmServiceConnection
 {
 public:
-  CmLocalConnection(const CmUURI *ServiceUURI);
+	CmLocalConnection(const CmUURI *_ServiceUURI);
   ~CmLocalConnection();
 
 

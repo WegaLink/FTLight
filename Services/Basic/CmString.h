@@ -125,6 +125,7 @@ public:
 	uint32 getLength() const;
 	int8*  getBuffer() const;
 	const int8* getText() const;
+	CmString getTextDir() const;  // convert forbidden chars to _ (underscore)
 	const uint8* getBinary() const;
 	const int16* getUnicode();
 	uint32 operator[](uint32 _uPos) const;
@@ -248,7 +249,7 @@ public:
 	//     + - at least one up to any number 1..MAX_UNSIGNED_INT
 	//     ? - non-mandatory occurrence (zero or one times)
 	//    () - enclose components to be extracted
-	uint32 Match(CmLString**, int8 const*);
+	uint32 Match(CmLString** _List, int8 const* _Text);
 
 public:
 	/** read/write

@@ -54,23 +54,23 @@ public:
 	//Constructors and destructor
 	CmException();
 	CmException(void* _pData);
-	CmException(CmString& mMessage);
+	CmException(CmString& _mMessage);
 	CmException(const int8* _pMessage);
-	CmException(CmString& mMessage,uint32 _uParameter);
+	CmException(CmString& _mMessage,uint32 _uParameter);
 	CmException(const int8* _pMessage,uint32 _uParameter);
-	CmException(CmString& mMessage,int32 _nParameter);
+	CmException(CmString& _mMessage,int32 _nParameter);
 	CmException(const int8* _pMessage,int32 _nParameter);
-	CmException(CmString& mMessage,uint64 _u64Parameter);
+	CmException(CmString& _mMessage,uint64 _u64Parameter);
 	CmException(const int8* _pMessage,uint64 _u64Parameter);
-	CmException(CmString& mMessage,CmString& mContext);
-	CmException(const int8* _pMessage,CmString& mContext);
+	CmException(CmString& _mMessage,CmString& _mContext);
+	CmException(const int8* _pMessage,CmString& _mContext);
 	CmException(const int8* _pMessage,const int8* _pContext);
-	CmException(void* _pData,CmString& mMessage);
+	CmException(void* _pData,CmString& _mMessage);
 	CmException(void* _pData,const int8* _pMessage);
-	CmException(void* _pData,CmString& mMessage,CmString& mContext);
-	CmException(void* _pData,const int8* _pMessage,CmString& mContext);
+	CmException(void* _pData,CmString& _mMessage,CmString& _mContext);
+	CmException(void* _pData,const int8* _pMessage,CmString& _mContext);
 	CmException(void* _pData,const int8* _pMessage,const int8* _pContext);
- 	CmException(const CmException &E);
+ 	CmException(const CmException &_E);
 	~CmException();
 
 	void putMessage(const int8* _pMessage);

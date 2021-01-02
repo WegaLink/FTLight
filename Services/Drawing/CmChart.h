@@ -71,8 +71,20 @@ public:
 	//------Layout--------------------------------------------------------------
 
 public:
+	// clearChart. A blank background will be drawn and a text.
+	bool clearChart(CmString _Title);
+
+public:
+	// updateChart. The chart will be redrawn.
+	bool updateChart();
+
+public:
 	// chart background, grid and axes will be drawn
 	bool drawLayout(bool _isChartOff);
+
+public:
+	// addText. A text line will be added on canvas.
+	bool addText(CmString _Text);
 
 public:
 	// a signal curve will be drawn
@@ -90,6 +102,10 @@ public:
 	//------CONFIGURATION-MANAGEMENT-functions----------------------------------
 
 public:
+	// GUI synchronization
+	bool setLockGUI(CmParallelFTL* _LockGUI, bool* _isDraw =NULL);
+
+public:
 	// Profile
 	ChartProfile& pro();
 
@@ -99,6 +115,14 @@ public:
 
 
 	//--------------workspace---------------------------------------------------
+
+private:
+	int32 TextCount;
+	int32 LineCount;
+
+private:
+	CmParallelFTL* LockGUI;
+	bool* isDraw;
 
 private:
 	// config
@@ -180,12 +204,12 @@ ChartProfile pro_ =
 	"Top:5",
 	"Left:10",
 	"Font:Arial",
-	"FontSize:12",
-	"FontColor:Black",
+	"FontSize:14",
+	"FontColor:DarkCyan",
 	"FontAlpha:1.0",
 	// text
 	"/Text:Chart text defaults",
-	"Top:5",
+	"Top:15",
 	"Left:10",
 	"Space:20",
 	"Font:Arial",

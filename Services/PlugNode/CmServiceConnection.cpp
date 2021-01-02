@@ -165,13 +165,13 @@ bool CmServiceConnection::sendCommand(CMCOMMAND _Command, CmServiceConnection *_
 	return true;
 }
 
-bool CmServiceConnection::sendMessage(CmString& Msg)
+bool CmServiceConnection::sendMessage(CmString& _Msg)
 {
 	// check writing stream
 	if (NULL == TxInfo) return false;
 
 	// Write a line to outgoing (Tx) stream buffer
-	if (false == TxInfo->writeLine(Msg)) return false;
+	if (false == TxInfo->writeLine(_Msg)) return false;
 
 	return true;
 }

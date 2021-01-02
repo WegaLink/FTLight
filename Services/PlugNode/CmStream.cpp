@@ -166,10 +166,10 @@ bool CmStream::writeData(uint8 *_Data, int64 _Size, int64 /*_Position*/)
 	return true;
 }
 
-bool CmStream::writeLine(const CmString& Line)
+bool CmStream::writeLine(const CmString& _Line)
 {
   // Write next line into buffer
-	if (false == writeData((uint8 *)Line.getBuffer(), Line.getLength())) return false;
+	if (false == writeData((uint8 *)_Line.getBuffer(), _Line.getLength())) return false;
 
   // Delimiter
 	if (false == writeData((uint8 *)CMSTREAM_LINE_DELIMITER, CMSTREAM_LINE_DELIMITER_LENGTH)) return false;
@@ -177,31 +177,31 @@ bool CmStream::writeLine(const CmString& Line)
   return true;
 }
 
-__int64 CmStream::readLine(CmString& Line)
+__int64 CmStream::readLine(CmString& _Line)
 {
   // Check data availability
   if( isReadLine() )
   {
     // Determine data length
     uint32 ReadLength = (uint32)(NewLinePosition - ReadPosition);
-    Line.setLength(ReadLength);
+    _Line.setLength(ReadLength);
 
     // Copy data into string
     if( ReadPosition + ReadLength <= WrapPosition )
     {
       // Determine start position in DataWindow and copy data in one go
       int64 StartInDataWindow = WindowSize - (WrapPosition - ReadPosition);
-      memcpy(Line.getBuffer(),DataWindow + StartInDataWindow,(size_t)ReadLength);
+      memcpy(_Line.getBuffer(),DataWindow + StartInDataWindow,(size_t)ReadLength);
     }
     else
     {
       // Copy a first data chunk until wrap position
       int64 StartInDataWindow = WindowSize - (WrapPosition - ReadPosition);
       int64 LengthWrap = WrapPosition - ReadPosition;
-      memcpy(Line.getBuffer(),DataWindow + StartInDataWindow,(size_t)LengthWrap);
+      memcpy(_Line.getBuffer(),DataWindow + StartInDataWindow,(size_t)LengthWrap);
 
       // Copy a second data chunk after wrap position
-      memcpy(Line.getBuffer() + LengthWrap,DataWindow,(size_t)(ReadLength - LengthWrap));
+      memcpy(_Line.getBuffer() + LengthWrap,DataWindow,(size_t)(ReadLength - LengthWrap));
     }
 
     // Step forward in stream for reading data
@@ -214,7 +214,7 @@ __int64 CmStream::readLine(CmString& Line)
       WrapPosition += WindowSize;
   }
   else
-    Line = "Hello, no data available";
+    _Line = "Hello, no data available";
 
   return ReadPosition;
 }

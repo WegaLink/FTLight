@@ -88,6 +88,10 @@ typedef unsigned char uint8;
 #include <io.h>
 #include <direct.h>
 #include <winsock2.h>
+#include <ws2tcpip.h>
+#include <stdio.h>
+
+#pragma comment(lib, "Ws2_32.lib")
 
 //---Common MVC and BVC
 #define MAXPATHLEN 1024
@@ -314,7 +318,7 @@ namespace Cosmos
 #define CMSMOOTHED_FACTOR_DEFAULT				1.0
 	public:
 		// constructor
-		CmSmoothed(double StartValue =0);
+		CmSmoothed(double _StartValue =0);
 		// desctructor
 		~CmSmoothed();
 	
@@ -322,7 +326,7 @@ namespace Cosmos
 		/** smooth.
 		*   A new value will be processed for smoothing
 		*/
-		double smooth(double NewValue);
+		double smooth(double _NewValue);
 		double smooth(int32 NewValue);
 	
 	public:

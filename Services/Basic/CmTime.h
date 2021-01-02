@@ -63,18 +63,21 @@ public:
 	// Unit test
 	static bool testCmTime();
 
+	// Systime access function (seconds)
+	static double getSysClock();
+
 	// Systime access function (nanoseconds)
-	static int64 getSysClockNanoSec(bool isPerformanceCounter =true);
+	static int64 getSysClockNanoSec(bool _isPerformanceCounter =true);
 
 	// Time conversion
-	static int64  getNanoSec(const char* szDateTime);
-	static CmString getTimeUTC(uint32 uDateTime=0, int32 nDayTime =-1, bool isFilename =false);
+	static int64  getNanoSec(const char* _szDateTime);
+	static CmString getTimeUTC(uint32 _uDateTime=0, int32 _nDayTime =-1, bool _isFilename =false);
 
   // Timestamp, e.g. as component for filenames
-	static CmString getTimestamp(int64 Timestamp, int32 TimeOffset =0, bool WithTime = false, bool WithMilliSec = false);
+	static CmString getTimestamp(int64 _Timestamp, int32 _TimeOffset =0, bool _WithTime = false, bool _WithMilliSec = false);
 
 	// Sidereal time GMST in [pico deg]
-	static uint64  getGMST(int64 nUTC);
+	static uint64  getGMST(int64 _nUTC);
 
 	//Constructor and Destructor
 	CmDateTime();
@@ -116,8 +119,8 @@ public:
   /** setTimestamp.
    *  A timestamp value will be assigned and converted if necessary.
    */
-  void setTimestamp(int64 Timestamp_ns);
-  void setTimestamp(uint64 Timestamp_ns);
+  void setTimestamp(int64 _Timestamp_ns);
+  void setTimestamp(uint64 _Timestamp_ns);
 
   /** getTimestamp.
    *  Currently assigned timestamp value will be returned.
@@ -129,7 +132,7 @@ public:
 	// return double [s]
 	double getTimestamp();
 	// get timestamp components
-	struct tm& getDateTime(uint64 Timestamp_s =0);
+	struct tm& getDateTime(uint64 _Timestamp_s =0);
 	int32 getYear();			// 1970..
 	int32 getMonth();			// 1..12
 	int32 getDay();				// 1..31
@@ -152,27 +155,27 @@ public:
 	/** operator
    *  Some operations with timestamps will be performed
    */
-  int64 operator+(int Timestamp_s);
-  int64 operator-(int Timestamp_s);
-  int64 operator+=(int Period_s);
-  int64 operator-=(int Period_s);
+  int64 operator+(int _Timestamp_s);
+  int64 operator-(int _Timestamp_s);
+  int64 operator+=(int _Period_s);
+  int64 operator-=(int _Period_s);
 
 	/** getDataRate.
 	 *  An average data rate will be estimated from the difference of 
 	 *  current timestamp and the timestamp on initialization.
 	 */
-	double getDataRate(int DataLength);
+	double getDataRate(int _DataLength);
 
 	/** start/getRuntime.
 	*   A precise runtime measurement based on performance counter will be performed.
 	*   The start point is either from startRuntime() or from last getRuntime().
 	*/
 	void startRuntime();
-	double getRuntime(bool isSetNow =true);
-	int getRuntime_s(bool isSetNow = true);
-	int getRuntime_ms(bool isSetNow = true);
-	int getRuntime_us(bool isSetNow = true);
-	int getRuntime_ns(bool isSetNow = true);
+	double getRuntime(bool _isSetNow =true);
+	int getRuntime_s(bool _isSetNow = true);
+	int getRuntime_ms(bool _isSetNow = true);
+	int getRuntime_us(bool _isSetNow = true);
+	int getRuntime_ns(bool _isSetNow = true);
 
 private:
 	// current timestamp
@@ -216,7 +219,7 @@ private:
 public:
 	// Running and evaluating a benchmark
 	bool run();
-	CmString info(int64 nLocal=0,int64 n64Divisor=1);
+	CmString info(int64 _nLocal=0,int64 _n64Divisor=1);
 
 	// Constructors and destructor
 	MBenchmark(int32 _nLoops=1000, int32 _nTrialPeriodMilliSec=100, int32 _nTrials=10);

@@ -39,7 +39,7 @@ SOFTWARE.
 CmUURI::CmUURI(const char *_UURI, const char *_RootUURI)
 {
   // Initialize the UURI string
-  setUURI(_UURI,_RootUURI);
+	NULL == _RootUURI ? NULL == _UURI ? setUURI(NULL, NULL) : setUURI(NULL, _UURI) : setUURI(_UURI, _RootUURI);
 
 }
 CmUURI::CmUURI(const CmString& _UURI)
@@ -59,14 +59,20 @@ bool CmUURI::isUURI(const int8 * _UURI)
 bool CmUURI::isUURI(CmString& _UURI)
 {
 	// one char '@' is mandatory
-	uint32 PosAt = _UURI.findPosition('@');
-	if (PosAt >= _UURI.getLength()) return false;
+	int32 PosAt = _UURI.findPosition('@');
+	if (PosAt >= int32(_UURI.getLength())) return false;
 
 	// the '@' char must not be escaped
 	if (_UURI[PosAt-1] == '\\') return false;
 
 	// only one '@' char allowed
 	if (uint32(_UURI.findPosition('@', PosAt+1)) < _UURI.getLength()) return false;
+
+	// delimiters in front of the '@' are not allowed
+	if (PosAt > _UURI.findPosition(':')) return false;
+	if (PosAt > _UURI.findPosition('=')) return false;
+	if (PosAt > _UURI.findPosition(',')) return false;
+	if (PosAt > _UURI.findPosition(';')) return false;
 
 	return true;
 }
@@ -542,6 +548,17 @@ const int8* CmString::getText() const
 	else{
 		return (int8*)"";
 	}
+}
+
+CmString CmString::getTextDir() const
+{
+	CmString Dir = getText();
+	// replace forbidden chars by _ (underscore)
+	for (int32 i = 0; i < int32(Dir.getLength()); i++){
+		Dir[i] == '/' ? Dir.setAt(i, '_') : 0;
+	}
+
+	return Dir;
 }
 
 const uint8* CmString::getBinary() const

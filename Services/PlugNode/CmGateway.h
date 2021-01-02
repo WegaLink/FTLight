@@ -61,7 +61,7 @@ public:
 	/** setNetworkUURI.
 	*  A network UURI will be assigned to this gateway.
 	*/
-	bool setNetworkUURI(const CmUURI& NetworkUURI);
+	bool setNetworkUURI(const CmUURI& _NetworkUURI);
 
 public:
 	/** getProviderUURI.
@@ -77,13 +77,13 @@ public:
 	*  @param GatewayInfo, contact information for reaching a gateway in the service network
 	*  @return succes or failed
 	*/
-	virtual bool joinNetwork(const CmUURI& NetworkUURI, CmConnectionInfo *GatewayInfo);
+	virtual bool joinNetwork(const CmUURI& _NetworkUURI, CmConnectionInfo *_GatewayInfo);
 
 public:
 	/** setConnectionInfo.
 	*  The connection info will be set for an existing network gateway.
 	*/
-	bool setConnectionInfo(CmConnectionInfo& GatewayInfo);
+	bool setConnectionInfo(CmConnectionInfo& _GatewayInfo);
 
 public:
 	/** sendInfo.
@@ -93,26 +93,26 @@ public:
 	*   If the service UURI is locally available then the information will be forwarded
 	*   locally.
 	*/
-	bool sendInfo(const CmString& Info, const CmUURI& ServiceUURI, bool isControl = false, bool isFTLight = true, CmString* RecipientUURI = NULL);
+	bool sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI, CMMODE _Mode = CM_QUERY, bool _isFTLight = true, CmString* _RecipientUURI = NULL);
 
 public:
 	/** findGateway.
 	*  A gateway for sending information to a service UURI in this network will be determined.
 	*/
-	virtual bool findGateway(const CmUURI& ServiceUURI, CmConnectionInfo& GatewayInfo);
+	virtual bool findGateway(const CmUURI& _ServiceUURI, CmConnectionInfo& _GatewayInfo);
 
 public:
 	/** sendInfoToGateway.
 	*  An information for a service UURI will be sent to a gateway with specified 
 	*  contact information.
 	*/
-	virtual bool sendInfoToGateway(CmString& Info, CmConnectionInfo& GatewayInfo);
+	virtual bool sendInfoToGateway(CmString& _Info, CmConnectionInfo& _GatewayInfo);
 
 public:
 	/** processInformation.
 	*  An information item will be analyzed and forwarded to the respective recipient.
 	*/
-	bool processInformation(CmString& Information);
+	bool processInformation(CmString& _Information);
 
 protected:
 	// Server parameters
@@ -170,12 +170,12 @@ public:
 	/** isMatchingGatewayConnection.
 	*  The connection parameters will be checked against destination gateway.
 	*/
-	virtual bool isMatchingGatewayConnection(CmConnectionInfo& GatewayInfo);
+	virtual bool isMatchingGatewayConnection(CmConnectionInfo& _GatewayInfo);
 
 	/** sendInfo.
 	*  An information will be sent to remote gateway.
 	*/
-	virtual bool sendInfoToGateway(CmString& Info);
+	virtual bool sendInfoToGateway(CmString& _Info);
 
 
 public:

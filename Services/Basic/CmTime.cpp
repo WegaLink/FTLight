@@ -92,6 +92,11 @@ bool CmDateTime::testCmTime()
 	return true;
 }
 
+double CmDateTime::getSysClock()
+{
+	return double(getSysClockNanoSec(false)) / DATETIME_NANOSECONDS;
+}
+
 // Systime access function (nanoseconds)
 int64 CmDateTime::getSysClockNanoSec(bool _isPerformanceCounter)
 {
@@ -222,22 +227,22 @@ CmString CmDateTime::getTimeUTC(uint32 _uDateTime, int32 _nDayTime, bool _isFile
 	return CmString(achUTC);
 }
 
-CmString CmDateTime::getTimestamp(int64 Timestamp, int32 TimeOffset, bool WithTime, bool WithMilliSec)
+CmString CmDateTime::getTimestamp(int64 _Timestamp, int32 _TimeOffset, bool _WithTime, bool _WithMilliSec)
 {
 	char achUTC[256];
 	int64 Timestamp_s = 0;
 	int64 Timestamp_ms = 0;
 
   // Generate timestamp [sec.]
-	if( 0 == Timestamp ){
+	if( 0 == _Timestamp ){
 		Timestamp_s = getSysClockNanoSec() / DATETIME_NANOSECONDS;
 	}else{
-		Timestamp_s = (Timestamp / TIMEBASE_SECONDS);
-		Timestamp_ms = (Timestamp - (Timestamp_s * TIMEBASE_SECONDS)) / TIMEBASE_MILLISECONDS;
+		Timestamp_s = (_Timestamp / TIMEBASE_SECONDS);
+		Timestamp_ms = (_Timestamp - (Timestamp_s * TIMEBASE_SECONDS)) / TIMEBASE_MILLISECONDS;
   }
 
   // Accept a timestamp offset
-	Timestamp_s += TimeOffset;
+	Timestamp_s += _TimeOffset;
 
 	// Calculate timestamp components
 	struct tm stDateTime = { 0 };
@@ -255,7 +260,7 @@ CmString CmDateTime::getTimestamp(int64 Timestamp, int32 TimeOffset, bool WithTi
 	#endif
 
   // Generate a timestamp string
-		if (true == WithTime && false == WithMilliSec)
+	if (true == _WithTime && false == _WithMilliSec)
 		{
 			SPRINTF9(achUTC, sizeof(achUTC), "%4u-%02u-%02u_%02u-%02u-%02u",
 				pDateTime->tm_year + 1900,
@@ -266,7 +271,7 @@ CmString CmDateTime::getTimestamp(int64 Timestamp, int32 TimeOffset, bool WithTi
 				pDateTime->tm_sec);
 		}
 		else
-		if (true == WithTime && true == WithMilliSec)
+		if (true == _WithTime && true == _WithMilliSec)
 		{
 			SPRINTF7(achUTC, sizeof(achUTC), "%02u-%02u-%02u.%03u",
 				pDateTime->tm_hour,
@@ -286,7 +291,7 @@ CmString CmDateTime::getTimestamp(int64 Timestamp, int32 TimeOffset, bool WithTi
 }
 
 
-uint64 CmDateTime::getGMST(int64 n64UTC)
+uint64 CmDateTime::getGMST(int64 _n64UTC)
 {
 	// GMST = 280,460618370000 + 360,985647366290 * d
 	// where
@@ -318,7 +323,7 @@ uint64 CmDateTime::getGMST(int64 n64UTC)
 	// Seconds till epoche 2000 (max +/- 136 years
 
 	// TODO
-	n64Sec2000 = (n64UTC - u64J2000)/(1000*1000*1000);
+	n64Sec2000 = (_n64UTC - u64J2000)/(1000*1000*1000);
 /*
     if (abs64(n64Sec2000) > (uint64)MAX_UINT32){
 		throw CmException("Date exceeded range: ",(uint32)abs64(n64Sec2000));
@@ -346,9 +351,9 @@ CmTimestamp::CmTimestamp()
 	RuntimeEnd = 0;
 }
 
-CmTimestamp::CmTimestamp(int64 Timestamp_ns)
+CmTimestamp::CmTimestamp(int64 _Timestamp_ns)
 {
-  setTimestamp(Timestamp_ns);
+  setTimestamp(_Timestamp_ns);
 
   // clear runtime workspace
   RuntimeBegin = 0;
@@ -396,19 +401,19 @@ double CmTimestamp::getTimestamp()
 
 	return Timestamp;
 }
-struct tm& CmTimestamp::getDateTime(uint64 Timestamp_s)
+struct tm& CmTimestamp::getDateTime(uint64 _Timestamp_s)
 {
 	// take current time in case of a zero timestamp
-	Timestamp_s == 0 ? Timestamp_s = time(NULL) : 0;
+	_Timestamp_s == 0 ? _Timestamp_s = time(NULL) : 0;
 
 	// decompose timestamp	
-	if (0 != _gmtime64_s(&stDateTime, (const time_t*)(&Timestamp_s))){
+	if (0 != _gmtime64_s(&stDateTime, (const time_t*)(&_Timestamp_s))){
 		// time conversion failed
 		memset(&stDateTime, 0, sizeof(stDateTime));
 		// estimate seconds, minutes and hours
-		stDateTime.tm_sec = Timestamp_s % 60;
-		stDateTime.tm_min = (Timestamp_s / 60) % 60;
-		stDateTime.tm_hour = (Timestamp_s / 3600) % 24;
+		stDateTime.tm_sec = _Timestamp_s % 60;
+		stDateTime.tm_min = (_Timestamp_s / 60) % 60;
+		stDateTime.tm_hour = (_Timestamp_s / 3600) % 24;
 	}
 	return stDateTime;
 }
@@ -487,29 +492,29 @@ bool CmTimestamp::getDST()
 	return isDST;
 }
 
-int64 CmTimestamp::operator+(int Timestamp_s)
+int64 CmTimestamp::operator+(int _Timestamp_s)
 {
-  return Timestamp_ns + Timestamp_s * DATETIME_NANOSECONDS;
+  return Timestamp_ns + _Timestamp_s * DATETIME_NANOSECONDS;
 }
 
-int64 CmTimestamp::operator-(int Timestamp_s)
+int64 CmTimestamp::operator-(int _Timestamp_s)
 {
-  return Timestamp_ns - Timestamp_s * DATETIME_NANOSECONDS;
+  return Timestamp_ns - _Timestamp_s * DATETIME_NANOSECONDS;
 }
 
-int64 CmTimestamp::operator+=(int Period_s)
+int64 CmTimestamp::operator+=(int _Period_s)
 {
-  Timestamp_ns += Period_s * DATETIME_NANOSECONDS;
+  Timestamp_ns += _Period_s * DATETIME_NANOSECONDS;
   return Timestamp_ns;
 }
 
-int64 CmTimestamp::operator-=(int Period_s)
+int64 CmTimestamp::operator-=(int _Period_s)
 {
-  Timestamp_ns -= Period_s * DATETIME_NANOSECONDS;
+  Timestamp_ns -= _Period_s * DATETIME_NANOSECONDS;
   return Timestamp_ns;
 }
 
-double CmTimestamp::getDataRate(int DataLength)
+double CmTimestamp::getDataRate(int _DataLength)
 {
 	// get current timestamp
 	CmTimestamp Now;
@@ -518,7 +523,7 @@ double CmTimestamp::getDataRate(int DataLength)
 	double DataRate = Now.getTimestamp();		// end time
 	DataRate -= this->getTimestamp();				// minus start time = duration
 	if ( DataRate != 0)
-		DataRate = DataLength / DataRate;			// amount of data / duration
+		DataRate = _DataLength / DataRate;			// amount of data / duration
 
 	return DataRate;
 }
@@ -648,19 +653,19 @@ bool MBenchmark::dummy()
 	}
 	return false;
 }
-CmString MBenchmark::info(int64 n64Local,int64 n64Divisor)
+CmString MBenchmark::info(int64 _n64Local,int64 _n64Divisor)
 {
 	int8 achInfo[1000];
 	int8 achFlag[1000];
 
-	if(n64Divisor > 1){
-		n64DurationMin = (n64DurationMin -n64ZeroOffsetMin) /n64Divisor;
+	if(_n64Divisor > 1){
+		n64DurationMin = (n64DurationMin -n64ZeroOffsetMin) /_n64Divisor;
 	}else{
 		n64DurationMin = n64DurationMin -n64ZeroOffsetMin;
 	}
-	if((int32)n64DurationMin < (int32)n64Local){
+	if((int32)n64DurationMin < (int32)_n64Local){
 		SPRINTF3(achFlag, sizeof(achFlag), "--");
-	}else if(100*(int32)n64DurationMin > TOLERANCE*(int32)n64Local){
+	}else if(100*(int32)n64DurationMin > TOLERANCE*(int32)_n64Local){
 		SPRINTF3(achFlag, sizeof(achFlag), "++");
 	}else{
 		SPRINTF3(achFlag, sizeof(achFlag), " ");
@@ -676,24 +681,24 @@ CmString MBenchmark::info(int64 n64Local,int64 n64Divisor)
 	    // Millisecond range
 		SPRINTF6(achInfo, sizeof(achInfo), "%6u ms ref:%6u %s",
 			(int32)(n64DurationMin/(PRECISION*RANGE_MILLI)),
-			(int32)(n64Local/(PRECISION*RANGE_MILLI)),
+			(int32)(_n64Local/(PRECISION*RANGE_MILLI)),
 			achFlag);
 	}else if((int32)(n64DurationMin/(PRECISION*RANGE_MICRO)) >= RANGE_MIN && 
 	   (int32)(n64DurationMin/(RANGE_MICRO*RANGE_MIN)) >= 0){
 	    // Microsecond range
 		SPRINTF6(achInfo, sizeof(achInfo), "%6u us ref:%6u %s",
 			(int32)(n64DurationMin/(PRECISION*RANGE_MICRO)),
-			(int32)(n64Local/(PRECISION*RANGE_MICRO)),
+			(int32)(_n64Local/(PRECISION*RANGE_MICRO)),
 			achFlag);
 	}else if((int32)(n64DurationMin/PRECISION) >= RANGE_MIN){
 	    // Nanosecond range
 		SPRINTF6(achInfo, sizeof(achInfo), "%6u ns ref:%6u %s",
 			(int32)(n64DurationMin/PRECISION),
-			(int32)(n64Local/PRECISION),
+			(int32)(_n64Local/PRECISION),
 			achFlag);
 	}else{
 	    // Sub-nanosecond range
-		SPRINTF6(achInfo, sizeof(achInfo), "%6.1f ns ref:%6.1f %s",(float)n64DurationMin/PRECISION,(float)n64Local/PRECISION,achFlag);
+		SPRINTF6(achInfo, sizeof(achInfo), "%6.1f ns ref:%6.1f %s",(float)n64DurationMin/PRECISION,(float)_n64Local/PRECISION,achFlag);
 	}
 	return CmString(achInfo);
 }

@@ -38,7 +38,7 @@ extern CmParallelFTL GatewayConnectionLock;
 //----------------------------------------------------------------------------
 // PROVIDER_CmGatewayTCP
 //----------------------------------------------------------------------------
-PROVIDER_CmGatewayTCP::PROVIDER_CmGatewayTCP(const CmConnectionInfo& _ConnectionInfo, const CmUURI& _NetworkUURI, const CmUURI& _ServiceUURI)
+PROVIDER_CmGatewayTCP::PROVIDER_CmGatewayTCP(CmConnectionInfo& _ConnectionInfo, const CmUURI& _NetworkUURI, const CmUURI& _ServiceUURI)
 	:SERVICE_CmGateway(_ConnectionInfo)
 {
 	LOG6("ID=", ContactID, " new PROVIDER_CmGatewayTCP port=", _ConnectionInfo.LAN.DstPort, " host=", CmString::UInt2Hex(_ConnectionInfo.LAN.DstHost), Msg, CMLOG_Network)
@@ -48,8 +48,8 @@ PROVIDER_CmGatewayTCP::PROVIDER_CmGatewayTCP(const CmConnectionInfo& _Connection
 	ServiceUURI = _ServiceUURI;
 
 	// Initialize a TCP socket
-	BindPort = ServerConnectionInfo.LAN.DstPort;
-	Interface = ServerConnectionInfo.LAN.DstHost;
+	BindPort = ServerConnectionInfo.ConnectionType == CMCONNECTION_TYPE_UDP ? CM_NETWORK_PORT_LAN_UDP : CM_NETWORK_PORT_LAN_TCP;
+	Interface = INADDR_ANY;	// bind to all interfaces
 	server_socket = socket(AF_INET, SOCK_STREAM, ServerConnectionInfo.ConnectionType == CMCONNECTION_TYPE_UDP ? IPPROTO_UDP : IPPROTO_TCP);
 	client_socket = INVALID_SOCKET;
 
@@ -64,16 +64,29 @@ PROVIDER_CmGatewayTCP::PROVIDER_CmGatewayTCP(const CmConnectionInfo& _Connection
 	client_addr.sin_addr.S_un.S_addr = 0;
 
 	// Bind socket
-	const int32 SocketRange = 14;	// try to bind on next available socket
 	SetupReturn = SOCKET_ERROR;
-	if (INVALID_SOCKET != server_socket)
-	{
-		for (int32 s = 0; s < SocketRange; s++){
-			// try next port
-			if (0 == (SetupReturn = bind(server_socket, (sockaddr*)&server_addr, sizeof(server_addr)))) break;
-			// failed, step to next port
-			SetupReturn = WSAGetLastError();
-			server_addr.sin_port = htons(++BindPort);
+	if (INVALID_SOCKET != server_socket){
+		if (0 != (SetupReturn = bind(server_socket, (sockaddr*)&server_addr, sizeof(server_addr)))){
+			// failed, try bind to any port
+			server_addr.sin_port = 0;
+			if (0 != (SetupReturn = bind(server_socket, (sockaddr*)&server_addr, sizeof(server_addr)))){
+				// failed, return WSA error
+				SetupReturn = WSAGetLastError();
+			}
+			else{
+				// update port information
+				int NameLen = sizeof(server_addr);
+				getsockname(server_socket, (sockaddr*)&server_addr, &NameLen);
+				ServerConnectionInfo.LAN.DstPort = ntohs(server_addr.sin_port);
+				_ConnectionInfo.LAN.DstPort = ntohs(server_addr.sin_port);
+			}
+		}
+		else{
+			// update port information
+			int NameLen = sizeof(server_addr);
+			getsockname(server_socket, (sockaddr*)&server_addr, &NameLen);
+			ServerConnectionInfo.LAN.DstPort = ntohs(server_addr.sin_port);
+			_ConnectionInfo.LAN.DstPort = ntohs(server_addr.sin_port);
 		}
 	}
 	else
@@ -135,6 +148,10 @@ bool PROVIDER_CmGatewayTCP::joinNetwork(const CmUURI& /*_NetworkUURI*/, CmConnec
 	LOG6("ID=", ContactID, " join network on TCP port=", (NULL != _ConnectionInfo ? _ConnectionInfo->LAN.DstPort : 0), " host=", (NULL != _ConnectionInfo ? CmString::UInt2Hex(_ConnectionInfo->LAN.DstHost) : ""), Msg, CMLOG_Network)
 
 	// ToDo: join network
+
+
+	// forward connection info
+	NULL != _ConnectionInfo ? _ConnectionInfo->LAN.DstPort = ServerConnectionInfo.LAN.DstPort : 0;
 
 	LOG4("ID=", ContactID, " joined network via TCP socket ", client_socket, Msg1, CMLOG_Network)
 	return true;

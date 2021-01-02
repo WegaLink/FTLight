@@ -114,7 +114,7 @@ bool SERVICE_CmGateway::setConnectionInfo(CmConnectionInfo& _GatewayInfo)
 	return true;
 }
 
-bool SERVICE_CmGateway::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI, bool _isControl, bool _isFTLight, CmString* _RecipientUURI)
+bool SERVICE_CmGateway::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI, CMMODE _Mode, bool _isFTLight, CmString* _RecipientUURI)
 {
 	// find a gateway for ServiceUURI
 	CmConnectionInfo GatewayConnectionInfo;
@@ -130,7 +130,7 @@ bool SERVICE_CmGateway::sendInfo(const CmString& _Info, const CmUURI& _ServiceUU
 	isFTLight = _isFTLight;
 	if (isFTLight){
 		Info = _ServiceUURI.getText();
-		Info += _isControl ? "," : ",`,";
+		Info += CM_QUERY == _Mode ? "," : ",`,";
 		Info += _Info;
 	}
 	else{

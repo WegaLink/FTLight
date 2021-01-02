@@ -665,12 +665,7 @@ bool CmServiceAccess::joinNetwork(const CmUURI& _NetworkUURI, CmConnectionInfo *
 			LOG4("ID=", ContactID, " add SERVICE_CmGateway NetworkUURI=", _NetworkUURI.getText(), Msg, CMLOG_Network)
 
 			// Create a new service network access point
-			if (_NetworkUURI.getString().isPrefix(CM_NETWORK_UURI_LAN_TCP)){
-				NetworkGateway = new SERVICE_CmGateway(ConnectionInfo);
-			}
-			else if (_NetworkUURI.getString().isPrefix(CM_NETWORK_UURI_LAN_UDP)){
-				NetworkGateway = new SERVICE_CmGateway(ConnectionInfo);
-			}
+			NetworkGateway = new SERVICE_CmGateway(ConnectionInfo);
 
 			// verify gateway and assign a network UURI
 			if (NULL == NetworkGateway) return false;
@@ -681,7 +676,12 @@ bool CmServiceAccess::joinNetwork(const CmUURI& _NetworkUURI, CmConnectionInfo *
 			this->NetworkGateways = NetworkGateway;
 
 			// Let the gateway login to desired service network
-			return NetworkGateway->joinNetwork((CmUURI)_NetworkUURI, &ConnectionInfo);
+			if(false == NetworkGateway->joinNetwork((CmUURI)_NetworkUURI, &ConnectionInfo)) return false;
+
+			// forward connection info
+			NULL != _ConnectionInfo ? _ConnectionInfo->LAN.DstPort = ConnectionInfo.LAN.DstPort : 0;
+
+			return true;
 		}
 		else{
 			// update connection info for an existing NetworkUURI
@@ -916,7 +916,7 @@ int32 CmServiceAccess::getPeers()
 	}
 }
 
-bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI, bool _isControl, bool /*_isFTLight*/, CmString* /*_RecipientUURI*/)
+bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI, CMMODE _Mode, bool /*_isFTLight*/, CmString* /*_RecipientUURI*/)
 {
 	// find service UURI
 	CmServiceAccess* Service = findServiceUURI(_ServiceUURI);
@@ -925,7 +925,7 @@ bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI
 	// add destination _ServiceUURI as a predecessor to _Info if it is a FTLight info
 	// add a query token in case it is not a control information
 	CmString Info(_ServiceUURI.getText());
-	Info += _isControl ? "," : ",`,";
+	Info += CM_QUERY == _Mode ? "," : ",`,";
 	Info += _Info;
 
 	LOG7("ID=", ContactID, " CmServiceAccess::sendInfo(ID", Service->ContactID, ") '", Info, "'", Msg, CMLOG_Info)
@@ -933,11 +933,11 @@ bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI
 	// initiate information processing by peer
 	return Service->processInformation(Info);
 }
-bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI, const CmUURI& _NetworkUURI, bool _isControl, bool _isFTLight, CmString* _RecipientUURI)
+bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI, const CmUURI& _NetworkUURI, CMMODE _Mode, bool _isFTLight, CmString* _RecipientUURI)
 {
 	// check for local access
 	if (_NetworkUURI == CM_UURI_ROOT_COSMOS){
-		return sendInfo(_Info, _ServiceUURI);
+		return sendInfo(_Info, _ServiceUURI, _Mode);
 	}
 	else{
 		// find network UURI
@@ -945,7 +945,7 @@ bool CmServiceAccess::sendInfo(const CmString& _Info, const CmUURI& _ServiceUURI
 		while (this != Network)
 		{
 			if (_NetworkUURI == Network->getNetworkUURI()){
-				return Network->sendInfo(_Info, _ServiceUURI, _isControl, _isFTLight, _RecipientUURI);
+				return Network->sendInfo(_Info, _ServiceUURI, _Mode, _isFTLight, _RecipientUURI);
 			}
 			Network = Network->NetworkGateways;
 		}

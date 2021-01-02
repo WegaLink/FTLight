@@ -62,7 +62,7 @@ public:
 	*
 	* NOTE: Information must not be 'const' in order to be processed by readLine().
 	*/
-	virtual bool processInformation(CmString& Information);
+	virtual bool processInformation(CmString& _Information);
 
 public:
 	/** processMessage.
@@ -71,7 +71,7 @@ public:
 	*
 	* NOTE: Message must not be 'const' in order to be processed by readLine().
 	*/
-	virtual bool processMessage(CmStream& Message, CmServiceConnection *ServiceConnection);
+	virtual bool processMessage(CmStream& _Message, CmServiceConnection *_ServiceConnection);
 
 public:
 	/** processMessage.
@@ -80,7 +80,7 @@ public:
 	*
 	* NOTE: Message must not be 'const' in order to be processed by readLine().
 	*/
-	bool processMessage(CmStream& Message);
+	bool processMessage(CmStream& _Message);
 
 public:
 	/** sendInformation.
@@ -88,13 +88,13 @@ public:
 	 *
 	 * NOTE: Information must not be 'const' in order to be processed by readLine().
 	 */
-	bool sendInformation(CmString& Information);
+	bool sendInformation(CmString& _Information);
 
 public:
 	/** getLastInformation.
 	*   A recently received information item will be returned
 	*/
-	bool getLastInfo(CmString& LastInfo);
+	bool getLastInfo(CmString& _LastInfo);
 
 public:
 
@@ -103,13 +103,13 @@ public:
 	 *   user defined functions whenever a next complete information item or
 	 *   network maintenance item has arrived from a peer CmCommunication module.
    */
-	bool registerCommunicationReceiver(CmCommunication* CommunicationReceiver, CmServiceConnection *ServiceConnection);
+	bool registerCommunicationReceiver(CmCommunication* _CommunicationReceiver, CmServiceConnection *_ServiceConnection);
 
   /**  unregisterCommunicationReceiver.
    *   A registered communication receiver will be unregistered. The value for
    *   CommunicationReceiver has to match the value when registering the module. 
    */
-	bool unregisterCommunicationReceiver(CmCommunication* CommunicationReceiver, CmServiceConnection *ServiceConnection);
+	bool unregisterCommunicationReceiver(CmCommunication* _CommunicationReceiver, CmServiceConnection *_ServiceConnection);
 
 protected:
 	CmString LastInformation;

@@ -37,7 +37,7 @@ SOFTWARE.
 //----------------------------------------------------------------------------
 //
 PROVIDER_CmBots::PROVIDER_CmBots()
-// Initialize PROVIDER UURI (=functionality) for a 'InfoNet' root UURI
+// Initialize PROVIDER UURI (=functionality) for a 'CmBots' root UURI
 : CmPlugNode(UURI_PROVIDER_CmBots, UURI_CmBots)
 {
 	// initialize workspace parameters
@@ -49,20 +49,27 @@ PROVIDER_CmBots::PROVIDER_CmBots()
 	Rdn = NULL;
 
 	// initialize CmValueINI arrays
-	CmValueINI::setDefaultInfoFTL(pro_.UURI, getReturn());
-	CmValueINI::setDefaultInfoFTL(dyn_.UURI, getReturn());
-	CmValueINI::setDefaultInfoFTL(ctr_.UURI, getReturn());
-	CmValueINI::setDefaultInfoFTL(msg_.UURI, getReturn());
-	CmValueINI::setDefaultInfoFTL(pln_.UURI, getReturn());
-	CmValueINI::setDefaultInfoFTL(rdn_.UURI, getReturn());
+	CmValueINI::setDefaultInfoFTL(pro_.UURI);
+	CmValueINI::setDefaultInfoFTL(dyn_.UURI);
+	CmValueINI::setDefaultInfoFTL(ctr_.UURI);
+	CmValueINI::setDefaultInfoFTL(msg_.UURI);
+	CmValueINI::setDefaultInfoFTL(pln_.UURI);
+	CmValueINI::setDefaultInfoFTL(rdn_.UURI);
 }
 
 PROVIDER_CmBots::~PROVIDER_CmBots()
 {
+	// delete config data
+	NULL != Pro ? delete Pro : 0;
+	NULL != Dyn ? delete Dyn : 0;
+	NULL != Ctr ? delete Ctr : 0;
+	NULL != Msg ? delete Msg : 0;
+	NULL != Pln ? delete Pln : 0;
+	NULL != Rdn ? delete Rdn : 0;
 
 }
 
-//------Module-test-----------------------------------------------PROVIDER----
+//------Bot-test--------------------------------------------------PROVIDER----
 bool PROVIDER_CmBots::testBot()
 {
 	// ToDo: 
@@ -78,13 +85,10 @@ bool PROVIDER_CmBots::processInformation(CmString& _Information)
 	CmValueFTL InfoFTL;
 	InfoFTL.processStringFTL(_Information);
 
+	// ToDo: process information
+
 	return true;
 }
-
-//------Module-functionality--------------------------------------PROVIDER----
-
-// ToDo...
-
 
 //------Background-data-processing--------------------------------PROVIDER----
 bool PROVIDER_CmBots::runParallel()
@@ -98,17 +102,16 @@ bool PROVIDER_CmBots::runParallel()
 	return true;
 }
 
+//------Bot-functionality-----------------------------------------PROVIDER----
+
+// ToDo...
+
+
 
 //------CONFIGURATION-MANAGEMENT-functions------------------------PROVIDER----
 CmBotsProfile& PROVIDER_CmBots::pro()
 {
-	if (NULL == Pro){
-		// create a local profile from default config
-		Pro = new CmBotsProfile(pro_);
-		// fallback to default profile if 'new' failed
-		NULL == Pro ? Pro = &pro_ : 0;
-	}
-	return *Pro;
+	return newConfig<CmBotsProfile>(&Pro, pro_);
 }
 bool PROVIDER_CmBots::updateProfile(CmStringFTL& _ProFTL)
 {
@@ -117,13 +120,12 @@ bool PROVIDER_CmBots::updateProfile(CmStringFTL& _ProFTL)
 bool PROVIDER_CmBots::writeProfile(CmString _ConfigPath)
 {
 	CmStringFTL ProFTL;
-	NULL != pro().UURI.StringINI ? ProFTL.processStringFTL(*pro().UURI.StringINI) : 0;
+	NULL != pro().UURI.getStringINI() ? ProFTL.processStringFTL(*pro().UURI.getStringINI()) : 0;
 	return pro().UURI.writeInfoFTL(_ConfigPath, ProFTL, getReturn());
 }
 bool PROVIDER_CmBots::readProfile(CmString _ConfigPath)
 {
 	if (false == pro().UURI.readInfoFTL(_ConfigPath, getReturn())) return false;
-
 	return true;
 }
 bool PROVIDER_CmBots::setDefaultProfile()
@@ -134,13 +136,7 @@ bool PROVIDER_CmBots::setDefaultProfile()
 // Dynamic
 CmBotsDynamic& PROVIDER_CmBots::dyn()
 {
-	if (NULL == Dyn){
-		// create a local profile from default config
-		Dyn = new CmBotsDynamic(dyn_);
-		// fallback to default dynamic if 'new' failed
-		NULL == Dyn ? Dyn = &dyn_ : 0;
-	}
-	return *Dyn;
+	return newConfig<CmBotsDynamic>(&Dyn, dyn_);
 }
 bool PROVIDER_CmBots::updateDynamic(CmStringFTL& _DynFTL)
 {
@@ -149,20 +145,14 @@ bool PROVIDER_CmBots::updateDynamic(CmStringFTL& _DynFTL)
 bool PROVIDER_CmBots::writeDynamic(CmString _ConfigPath)
 {
 	CmStringFTL DynFTL;
-	NULL != dyn().UURI.StringINI ? DynFTL.processStringFTL(*dyn().UURI.StringINI) : 0;
+	NULL != dyn().UURI.getStringINI() ? DynFTL.processStringFTL(*dyn().UURI.getStringINI()) : 0;
 	return dyn().UURI.writeInfoFTL(_ConfigPath, DynFTL, getReturn());
 }
 
 // Control
 CmBotsControl& PROVIDER_CmBots::ctr()
 {
-	if (NULL == Ctr){
-		// create a local profile from default config
-		Ctr = new CmBotsControl(ctr_);
-		// fallback to default control if 'new' failed
-		NULL == Ctr ? Ctr = &ctr_ : 0;
-	}
-	return *Ctr;
+	return newConfig<CmBotsControl>(&Ctr, ctr_);
 }
 bool PROVIDER_CmBots::updateControl(CmStringFTL& _CtrFTL)
 {
@@ -171,20 +161,14 @@ bool PROVIDER_CmBots::updateControl(CmStringFTL& _CtrFTL)
 bool PROVIDER_CmBots::writeControl(CmString _ConfigPath)
 {
 	CmStringFTL CtrFTL;
-	NULL != ctr().UURI.StringINI ? CtrFTL.processStringFTL(*ctr().UURI.StringINI) : 0;
+	NULL != ctr().UURI.getStringINI() ? CtrFTL.processStringFTL(*ctr().UURI.getStringINI()) : 0;
 	return ctr().UURI.writeInfoFTL(_ConfigPath, CtrFTL, getReturn());
 }
 
 // Message
 CmBotsMessage& PROVIDER_CmBots::msg()
 {
-	if (NULL == Msg){
-		// create a local profile from default config
-		Msg = new CmBotsMessage(msg_);
-		// fallback to default message if 'new' failed
-		NULL == Msg ? Msg = &msg_ : 0;
-	}
-	return *Msg;
+	return newConfig<CmBotsMessage>(&Msg, msg_);
 }
 bool PROVIDER_CmBots::updateMessage(CmStringFTL& _MsgFTL)
 {
@@ -193,20 +177,14 @@ bool PROVIDER_CmBots::updateMessage(CmStringFTL& _MsgFTL)
 bool PROVIDER_CmBots::writeMessage(CmString _ConfigPath)
 {
 	CmStringFTL MsgFTL;
-	NULL != msg().UURI.StringINI ? MsgFTL.processStringFTL(*msg().UURI.StringINI) : 0;
+	NULL != msg().UURI.getStringINI() ? MsgFTL.processStringFTL(*msg().UURI.getStringINI()) : 0;
 	return msg().UURI.writeInfoFTL(_ConfigPath, MsgFTL, getReturn());
 }
 
 // Polling
 CmBotsPolling& PROVIDER_CmBots::pln()
 {
-	if (NULL == Pln){
-		// create a local profile from default config
-		Pln = new CmBotsPolling(pln_);
-		// fallback to default polling if 'new' failed
-		NULL == Pln ? Pln = &pln_ : 0;
-	}
-	return *Pln;
+	return newConfig<CmBotsPolling>(&Pln, pln_);
 }
 bool PROVIDER_CmBots::updatePolling(CmStringFTL& _PlnFTL)
 {
@@ -215,20 +193,14 @@ bool PROVIDER_CmBots::updatePolling(CmStringFTL& _PlnFTL)
 bool PROVIDER_CmBots::writePolling(CmString _ConfigPath)
 {
 	CmStringFTL PlnFTL;
-	NULL != pln().UURI.StringINI ? PlnFTL.processStringFTL(*pln().UURI.StringINI) : 0;
+	NULL != pln().UURI.getStringINI() ? PlnFTL.processStringFTL(*pln().UURI.getStringINI()) : 0;
 	return pln().UURI.writeInfoFTL(_ConfigPath, PlnFTL, getReturn());
 }
 
 // Reading
 CmBotsReading& PROVIDER_CmBots::rdn()
 {
-	if (NULL == Rdn){
-		// create a local profile from default config
-		Rdn = new CmBotsReading(rdn_);
-		// fallback to default reading if 'new' failed
-		NULL == Rdn ? Rdn = &rdn_ : 0;
-	}
-	return *Rdn;
+	return newConfig<CmBotsReading>(&Rdn, rdn_);
 }
 bool PROVIDER_CmBots::updateReading(CmStringFTL& _RdnFTL)
 {
@@ -237,7 +209,7 @@ bool PROVIDER_CmBots::updateReading(CmStringFTL& _RdnFTL)
 bool PROVIDER_CmBots::writeReading(CmString _ConfigPath)
 {
 	CmStringFTL RdnFTL;
-	NULL != rdn().UURI.StringINI ? RdnFTL.processStringFTL(*rdn().UURI.StringINI) : 0;
+	NULL != rdn().UURI.getStringINI() ? RdnFTL.processStringFTL(*rdn().UURI.getStringINI()) : 0;
 	return rdn().UURI.writeInfoFTL(_ConfigPath, RdnFTL, getReturn());
 }
 
@@ -271,7 +243,7 @@ CmUURI& PROVIDER_CmBots::getUURI()
 BOT_CmBots::BOT_CmBots(const int8 *_Init)
 	:CmValueINI(_Init)
 {
-	// assign module name
+	// assign bot name
 	CmString BotName = getText();
 	setBotName(BotName);
 
@@ -300,12 +272,10 @@ SERVICE_CmBots::~SERVICE_CmBots()
 		delete LocalProvider;
 }
 
-//------Module-test---------------------------------------------------------
+//------Bot-test--------------------------------------------------------------
 bool SERVICE_CmBots::testBot()
 {
-	// ToDo...
-
-	return true;
+	return Provider().testBot();
 }
 
 //------Remote-service-access-------------------------------------------------
@@ -314,7 +284,7 @@ bool SERVICE_CmBots::processInformation(CmString& _Information)
 	return Provider().processInformation(_Information);
 }
 
-//------Module-functionality--------------------------------------------------
+//------Bot-functionality-----------------------------------------------------
 
 // ToDo...
 
@@ -427,13 +397,9 @@ bool SERVICE_CmBots::clearLogLevel()
 {
 	return Provider().clearLogLevel();
 }
-CmUURI& SERVICE_CmBots::getUURI()
-{
-	return Provider().getUURI();
-}
 CmString& SERVICE_CmBots::setBotName(CmString _BotName)
 {
-	// store service and module UURI in the SERVICE plugnode
+	// store service UURI and bot name in the SERVICE plugnode
 	CmPlugNode::ServiceUURI = Provider().getUURI().getText();
 	CmPlugNode::setBotName(_BotName);
 
@@ -442,6 +408,10 @@ CmString& SERVICE_CmBots::setBotName(CmString _BotName)
 CmString& SERVICE_CmBots::getBotUURI()
 {
 	return CmPlugNode::getBotUURI();
+}
+CmUURI& SERVICE_CmBots::getUURI()
+{
+	return Provider().getUURI();
 }
 
 //------Service-access-by-PROVIDER--------------------------------------------

@@ -35,7 +35,7 @@ SOFTWARE.
 #include "Services/PlugNode/CmPlugNode.h"
 #include "FTLight/CmValueFTL.h"
 
-namespace CmBots
+namespace Cosmos
 {
 
 	#define COMPANY_CmBots			"WegaLink"
@@ -78,13 +78,13 @@ public:
 	*/
 	bool testBot();
 
-
 	//------Remote-service-access-----------------------------------------------
 
 public:
 	/** processInformation.
 	*  An information item will be processed on arrival. This funtion is supposed
-	*  to further deal with received information respectively to reject it.
+	*  to further deal with received information respectively to reject it. Any
+	*  remote access/control functionality is provided by this function.
 	*/
 	bool processInformation(CmString& Information);
 
@@ -156,17 +156,18 @@ public:
 	bool clearLogLevel();
 
 public:
+	/** setBotName/getBotUURI
+	*   A bot name will be added to the ServicUURI for getting a BotUURI.
+	*/
+	CmString& setBotName(CmString _BotName);
+	CmString& getBotUURI();
+
+public:
 	/** getUURI.
 	*  The UURI including version information will be retrieved from class
 	*  implementation.
 	*/
 	virtual CmUURI& getUURI();
-
-	/** setBotName/getBotUURI
-	*   A module name will be added to the ServicUURI for getting a BotUURI.
-	*/
-	CmString& setBotName(CmString _BotName);
-	CmString& getBotUURI();
 
 //------Service-access-by-PROVIDER--------------------------------------------
 
@@ -217,15 +218,15 @@ public:
 public:
 	bool processInformation(CmString& _Information);
 
-	//------Bot-functionality---------------------------------------PROVIDER----
-
-	// ToDo...
-
-
 	//------Background-data-processing------------------------------PROVIDER----
 
 public:
 	bool runParallel();
+
+	//------Bot-functionality---------------------------------------PROVIDER----
+
+	// ToDo...
+
 
 	//------CONFIGURATION-MANAGEMENT-functions----------------------PROVIDER----
 
@@ -274,6 +275,7 @@ public:
 	CmValueINI& getReturn();
 
 public:
+	// PROVIDER's implementation of getUURI.
 	CmUURI& getUURI();
 
 //------workspace-------------------------------------------------PROVIDER----
@@ -311,9 +313,9 @@ CmBotsProfile pro_ =
 	UURI_CmBots"/Profile/"VERSION_CmBots,
 	"/timestamp",
 
-}
+};
 #endif
-;
+
 
 //------CmBots-dynamic--------------------------------------------------------
 // volatile dynamic values
@@ -335,15 +337,15 @@ CmBotsDynamic dyn_ =
 	UURI_CmBots"/Dynamic/"VERSION_CmBots,
 	"/timestamp",
 	">loglevel",
-	"message",
-	"context",
+	">message",
+	">context",
 
 };
 #endif
 
 //------CmBots-control--------------------------------------------------------
 // control values
-// module control information
+// bot control information
 struct _CmBotsControl {
 	// identification
 	CmValueINI UURI;
@@ -365,7 +367,6 @@ CmBotsControl ctr_ =
 //------CmBots-message--------------------------------------------------------
 // message values
 // event information, sent values to be processed
-#pragma warning (disable : 4510 4610)
 struct _CmBotsMessage {
 	// identification
 	CmValueINI UURI;
@@ -387,7 +388,6 @@ CmBotsMessage msg_ =
 //------CmBots-polling--------------------------------------------------------
 // polling values
 // initiate return of measurement values
-#pragma warning (disable : 4510 4610)
 struct _CmBotsPolling {
 	// identification
 	CmValueINI UURI;
@@ -409,7 +409,6 @@ CmBotsPolling pln_ =
 //------CmBots-reading--------------------------------------------------------
 // reading values
 // response to polling, return measurement values
-#pragma warning (disable : 4510 4610)
 struct _CmBotsReading {
 	// identification
 	CmValueINI UURI;
@@ -429,8 +428,8 @@ CmBotsReading rdn_ =
 #endif
 
 
-} // namespace CmBots
+} // namespace Cosmos
 
-using namespace CmBots;
+using namespace Cosmos;
 
 #endif // !defined(CmBotsH)

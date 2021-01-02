@@ -298,7 +298,7 @@ class CmValueFTL : public CmStringFTL
 public:
 	CmValueFTL(int8 *_Address = NULL);
 	CmValueFTL(CmTypeFTL _TypeFTL);
-	~CmValueFTL();
+	virtual ~CmValueFTL();
 
 public:
 	/** unit test for CmValueFTL */
@@ -647,7 +647,7 @@ public:
 	*
 	*  [`]=enabled, [i]=default, [0,l]=disabled, [0,l,0/1]=position x/y, [1,l]=text, [2,l]=size, [3,l]=rotation, [4,l]=color, [5,l]=font, [6,l]=alpha
 	*/
-	bool setChartText(int32 _Index, const CmPoint2D& _Position, const CmString& _Text, double _FontSize = -1, double _Rotation = -1, const CmString& _Color = "", double _Alpha = -1, const CmString& _Font = "");
+	bool setChartText(int32& _Index, const CmPoint2D& _Position, const CmString& _Text, double _FontSize = -1, double _Rotation = -1, const CmString& _Color = "", double _Alpha = -1, const CmString& _Font = "");
 	bool setChartTextWrap(int32& _Index, const CmPoint2D& _Position, const int32 _PosWrap, const CmString& _Text, double _FontSize = -1, double _Rotation = -1, const CmString& _Color = "", double _Alpha = -1, const CmString& _Font = "");
 	bool setChartTextDefaults(double _FontSize = 10, double _Rotation = 0, const CmString& _Color = "Black", double _Alpha = 1, const CmString& _Font = "Arial");
 	bool getChartText(int32 _Index, CmPoint2D& _Position, CmString& _Text, double& _FontSize, double& _Rotation, CmString& _Color, double& _Alpha, CmString& _Font);
@@ -742,7 +742,7 @@ class CmValueINI : public CmValueFTL
 {
 public:
 	CmValueINI(const int8 *_Init = NULL);
-	~CmValueINI();
+	virtual ~CmValueINI();
 
 public:
 	/** unit test for CmValueINI */
@@ -758,6 +758,7 @@ public:
 
 public:
 	// An array of CmValueFTL items will be initialized by a CmStringFTL content
+	static bool setDefaultInfoFTL(CmValueINI& _ValueINI);
 	static bool setDefaultInfoFTL(CmValueINI& _ValueINI, CmValueINI& _Return);
 
 public:
@@ -848,10 +849,18 @@ public:
 	CmValueFTL& getMessage();
 	CmValueFTL& getContext();
 
+public:
+	// access initialization string
+	bool setStringINI(CmString& _StringINI);
+	CmString* getStringINI();
+
+public:
+	// clear workspace
+	bool clearWorkspace();
 
 	//--------workspace-----------------------------------------------------------
 
-//public:
+private:
 	// automatic address and FTL hierarchy generation
 	CmMatrix* MatrixINI;
 	CmString* StringINI;
@@ -867,12 +876,20 @@ T& newConfig(T** T1, T& T0){
 		*T1 = new T(T0);
 		// fallback to default config if 'new' failed
 		NULL == *T1 ? *T1 = &T0 : 0;
-		// adjust member list
+		// obtain member list
 		int32 Count = sizeof(T) / sizeof(CmValueINI);
 		CmValueINI* INI = (CmValueINI*)*T1;
+		// adjust member list
 		for (int32 i = 0; i < Count - 1; i++){
 			(INI + i)->Next = INI + i + 1;
 		}
+		// clear workspace (which has to be disconnected from template, otherwise desctructor will fail) 
+		for (int32 i = 0; i < Count; i++){
+			(INI + i)->clearWorkspace();
+		}
+		// copy StringINI 
+		CmValueINI* UURI = (CmValueINI*)&T0;
+		NULL != UURI->getStringINI() ? INI->setStringINI(*UURI->getStringINI()) : 0;
 	}
 
 	return **T1;

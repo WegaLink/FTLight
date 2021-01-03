@@ -1612,7 +1612,7 @@ bool CmValueFTL::syncSettings(CmStringFTL& _StringFTL)
 	return true;
 }
 
-bool CmValueFTL::updateInfoFTL(CmStringFTL& _InfoFTL, CmValueINI& _Return, CmString _StartAddr)
+bool CmValueFTL::updateInfoFTL(CmStringFTL& _InfoFTL, CmValueFTL& _Return, CmString _StartAddr)
 {
 	// get return values
 	CmValueFTL& _LogLevel = _Return.getLogLevel();
@@ -3166,6 +3166,22 @@ bool CmValueFTL::getChartLine(int32 _Index, CmVector<float>& PointX, CmVector<fl
 	return true;
 }
 
+CmValueFTL& CmValueFTL::getLogLevel()
+{
+	return *this;
+}
+CmValueFTL& CmValueFTL::getMessage()
+{
+	bool isEndOfConfigValues;
+	return getNextConfigValue(isEndOfConfigValues);
+}
+CmValueFTL& CmValueFTL::getContext()
+{
+	bool isEndOfConfigValues;
+	return getNextConfigValue(isEndOfConfigValues).getNextConfigValue(isEndOfConfigValues);
+}
+
+
 //------------------------------------------------------------------------------
 // CmValueINI class
 //------------------------------------------------------------------------------
@@ -3431,10 +3447,10 @@ CmString CmValueINI::getValue(CmString _NameValue)
 }
 bool CmValueINI::setDefaultInfoFTL(CmValueINI& _ValueINI)
 {
-	CmValueINI DummyReturn;
+	CmValueFTL DummyReturn;
 	return setDefaultInfoFTL(_ValueINI, DummyReturn);
 }
-bool CmValueINI::setDefaultInfoFTL(CmValueINI& _ValueINI, CmValueINI& _Return)
+bool CmValueINI::setDefaultInfoFTL(CmValueINI& _ValueINI, CmValueFTL& _Return)
 {
 	// check initialization string availability
 	if (NULL == _ValueINI.StringINI) return false;
@@ -3474,21 +3490,6 @@ bool CmValueINI::clearWorkspace()
 	MatrixINI = NULL;
 	StringINI = NULL;
 	return true;
-}
-
-CmValueFTL& CmValueINI::getLogLevel()
-{
-	return *this;
-}
-CmValueFTL& CmValueINI::getMessage()
-{
-	bool isEndOfConfigValues;
-	return getNextConfigValue(isEndOfConfigValues);
-}
-CmValueFTL& CmValueINI::getContext()
-{
-	bool isEndOfConfigValues;
-	return getNextConfigValue(isEndOfConfigValues).getNextConfigValue(isEndOfConfigValues);
 }
 
 

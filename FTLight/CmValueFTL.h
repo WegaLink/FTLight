@@ -342,7 +342,7 @@ public:
 	/** updateInfoFTL.
 	*  The InfoFTL values will be updated from a CmStringFTL structure.
 	*/
-	bool updateInfoFTL(CmStringFTL& _InfoFTL, CmValueINI& _Return, CmString _StartAddr = CmString());
+	bool updateInfoFTL(CmStringFTL& _InfoFTL, CmValueFTL& _Return, CmString _StartAddr = CmString());
 
 public:
 	/** serializeValueFTL
@@ -667,6 +667,13 @@ public:
 	bool setChartLineDefaults(double _LineWidth = 1, const CmString& _LineColor = "Black", const CmString& _FillColor = "Gray", double _LineAlpha = 1, double _FillAlpha = 0);
 	bool getChartLine(int32 _Index, CmVector<float>& _PointX, CmVector<float>& _PointY, double& _LineWidth, CmString& _LineColor, CmString& _FillColor, double& _LineAlpha, double& _FillAlpha);
 
+public:
+	// return access to LogLevel, Message and Context of a Dynamics structure,
+	// assuming that those are subsequent config values
+	CmValueFTL& getLogLevel();
+	CmValueFTL& getMessage();
+	CmValueFTL& getContext();
+
 	
 
 //--------workspace-----------------------------------------------------------
@@ -759,7 +766,7 @@ public:
 public:
 	// An array of CmValueFTL items will be initialized by a CmStringFTL content
 	static bool setDefaultInfoFTL(CmValueINI& _ValueINI);
-	static bool setDefaultInfoFTL(CmValueINI& _ValueINI, CmValueINI& _Return);
+	static bool setDefaultInfoFTL(CmValueINI& _ValueINI, CmValueFTL& _Return);
 
 public:
 	/** getInfoFTL.
@@ -841,13 +848,6 @@ public:
 
 		return true;
 	}
-
-public:
-	// return access to LogLevel, Message and Context of a Dynamics structure,
-	// assuming that those are subsequent config values
-	CmValueFTL& getLogLevel();
-	CmValueFTL& getMessage();
-	CmValueFTL& getContext();
 
 public:
 	// access initialization string

@@ -116,7 +116,7 @@ static struct stInitFTLight InitFTLight[] = {
 //
 PROVIDER_CmFileFTL::PROVIDER_CmFileFTL()
 // Initialize SERVICE UURI (=interface) for a 'CmFileFTL' root UURI
-: CmPlugNode(UURI_SERVICE_CmFileFTL, UURI_CmFileFTL)
+: CmPlugNode(UURI_PROVIDER_CmFileFTL)
 {
 	// initialize workspace parameters
 	Pro = NULL;
@@ -316,7 +316,7 @@ bool PROVIDER_CmFileFTL::testPingData(CmMatrix& _M, int32 _Index, bool _isHeader
 			double ScalingTrvMin = _M(_Index, 7);
 			double ScalingTrvMax = _M(_Index, 8);
 			for (int32 i = 0; i < Size; i++){
-				double TimestampRelative = ScalingTimestamp*(double(_M(_Index, 0, i)) - double(msg().Timestamp)) / SECONDS_PER_MINUTE;
+				double TimestampRelative = ScalingTimestamp*(double(_M(_Index, 0, i)) - double(pro().Timestamp)) / SECONDS_PER_MINUTE;
 				Timestamp.double2String(TimestampRelative, 0);
 				Temperature.double2String(ScalingTemperature * double(_M(_Index, 3, i)), 1);
 				// delay
@@ -395,14 +395,14 @@ bool PROVIDER_CmFileFTL::runParallel()
 
 //------Bot-functionality-----------------------------------------PROVIDER----
 
-bool PROVIDER_CmFileFTL::putFTLightData(CmValueINI& _UURI, CmValueINI& /*_Return*/)
+bool PROVIDER_CmFileFTL::putFTLightData(CmValueINI& _Data, CmValueINI& /*_Return*/)
 {
 	// Data:::vector of U matrices with UURI strings at position [`]
 	// U:::array of C columns with M measure values, [`] = UURI, [c] = base value/format descriptor, [0, m] = timestamp, [c, m] = measure values
 	//       management: [0, 0, 0] = header, [0, 0, 1] = begin of period, [0, 0, 2] = end of period
 
 	// find Data item
-	CmValueFTL* Data = &_UURI;
+	CmValueFTL* Data = &_Data;
 	while (Data->allValuesFTL(&Data)){
 		if (*Data == "Data") break;
 	}
@@ -422,11 +422,11 @@ bool PROVIDER_CmFileFTL::putFTLightData(CmValueINI& _UURI, CmValueINI& /*_Return
 	int32 VectorLength = M.getLength();
 	for (u = 0; u < VectorLength; u++){
 		CmString Item = M(u);
-		if (Item == _UURI.getText()) break;
+		if (Item == _Data.getText()) break;
 	}
 	if (u >= VectorLength){
 		// insert new item
-		M(u) = _UURI.getText();
+		M(u) = _Data.getText();
 
 		// test ping headers
 		testPingData(M, u, true);
@@ -435,7 +435,7 @@ bool PROVIDER_CmFileFTL::putFTLightData(CmValueINI& _UURI, CmValueINI& /*_Return
 	// check if the Data matrix has been initialized already
 	if (0 == M(u).getSizeLastLevel()){
 		// check StringINI availability
-		if (_UURI.getStringINI() == NULL) return false;
+		if (_Data.getStringINI() == NULL) return false;
 		// initialize Data matrix: put raw values as double to M(u,i)
 		ValueFTL = Data;
 		for (int i = 0; ValueFTL->allValuesFTL(&ValueFTL); i++){
@@ -444,7 +444,7 @@ bool PROVIDER_CmFileFTL::putFTLightData(CmValueINI& _UURI, CmValueINI& /*_Return
 		}
 		// restore base values
 		CmValueINI Return;
-		_UURI.setDefaultInfoFTL(_UURI, Return);
+		_Data.setDefaultInfoFTL(_Data, Return);
 		// exchange U(c) by base value(c), estimate and write relative measure value(c) to first data row U(c,0) where c is the channel
 		ValueFTL = Data;
 		for (int c = 0; ValueFTL->allValuesFTL(&ValueFTL); c++){
@@ -458,7 +458,7 @@ bool PROVIDER_CmFileFTL::putFTLightData(CmValueINI& _UURI, CmValueINI& /*_Return
 		// determine file start and end time based on period
 		double AcquisitionTimestamp = double(M(u, 1, 0)) * double(M(u, 1));
 		int32 IndexPeriod = 2;
-		ValueFTL = _UURI.getConfigValue(IndexPeriod);
+		ValueFTL = _Data.getConfigValue(IndexPeriod);
 		if (0 != IndexPeriod) return false;
 		double Period = ValueFTL->getNumAsDouble();
 		if (0 == Period) return false;
@@ -490,32 +490,17 @@ bool PROVIDER_CmFileFTL::putFTLightData(CmValueINI& _UURI, CmValueINI& /*_Return
 			testPingData(M,u);
 
 			// write current dataset to disk
-
-
 			// tbd.
+
+
 
 			// clear matrix
 			M(u).clearMatrix();
 			// restore UURI
-			M(u) = _UURI.getText();
+			M(u) = _Data.getText();
 
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-	//// TEST: write data to disk
-	//CmStringFTL DataFTL;
-	//DataFTL.processStringFTL(*_UURI.StringINI);
-	//_UURI.writeInfoFTL("./", DataFTL, _Return);
 
 	return true;
 }
@@ -1378,7 +1363,7 @@ BOT_CmFileFTL::~BOT_CmFileFTL()
 //
 SERVICE_CmFileFTL::SERVICE_CmFileFTL()
 // Initialize SERVICE UURI (=interface) for a 'CmFileFTL' root UURI
-: CmPlugNode(UURI_SERVICE_CmFileFTL, UURI_CmFileFTL)
+: CmPlugNode(UURI_SERVICE_CmFileFTL)
 {
 	// Initialize
 	LocalProvider = NULL;
@@ -1651,7 +1636,6 @@ bool SERVICE_CmFileFTL::clearLogLevel()
 CmString& SERVICE_CmFileFTL::setBotName(CmString _BotName)
 {
 	// store service UURI and bot name in the SERVICE plugnode
-	CmPlugNode::ServiceUURI = Provider().getUURI().getText();
 	CmPlugNode::setBotName(_BotName);
 
 	return CmPlugNode::getBotUURI();

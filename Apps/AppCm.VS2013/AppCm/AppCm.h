@@ -43,7 +43,7 @@ namespace AppCm
 	#define COMPANY_AppCm					"WegaLink"
 	#define CREATOR_AppCm					"EKD@JN58nc_Türkenfeld"
 	#define PROGRAM_AppCm					"AppCm"
-	#define VERSION_AppCm					"v1.0"
+	#define VERSION_AppCm					"v1.1"
 	#define CREATED_AppCm					"2020-03-30"
 	// UURI 
 	#define UURI_AppCm						CREATOR_AppCm"."PROGRAM_AppCm
@@ -358,6 +358,7 @@ struct _AppCmProfile {
 	// bots 
 	CmValueINI Bots;
 	BOT_CmBots Bot1;
+	BOT_CmBots Bot2;
 
 };
 
@@ -401,6 +402,7 @@ AppCmProfile pro =
 	// bots 
 	"/Bots:module functionality access",
 	">Bot1:bot-1",
+	"Bot2:bot-2",
 
 };
 #endif

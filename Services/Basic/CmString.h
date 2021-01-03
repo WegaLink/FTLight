@@ -882,6 +882,7 @@ bool isCmException = false;
 bool isCmMatrixFTL = false;
 bool isCmMatrix = false;
 bool isCmVector = false;
+bool isCmParallel = false;
 #else
 extern int64 ItemsAllocated;
 extern int64 ItemsReleased;
@@ -909,6 +910,7 @@ extern bool isCmException;
 extern bool isCmMatrixFTL;
 extern bool isCmMatrix;
 extern bool isCmVector;
+extern bool isCmParallel;
 #endif
 
 }  // namespace Cosmos

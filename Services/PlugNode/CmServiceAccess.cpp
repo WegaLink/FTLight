@@ -43,7 +43,9 @@ CmParallelFTL ContactLock;
 
 // A list of CmServiceConnections that are scheduled for shut-down
 CmServiceConnection *ShutDownConnections = NULL;
-CmParallelFTL ServiceConnectionLock;
+
+// service connection lock is created with a first PlugNode and removed when deleting that last PlugNode
+extern CmParallelFTL* ServiceConnectionLock;
 
 int32 ServiceCreated = 0;
 int32 ServiceDeleted = 0;
@@ -220,11 +222,11 @@ bool CmServiceAccess::switchServiceAccess()
 	bool Ret = ConnectionSwitch->sendCommand(CMCOMMAND_SWITCH, Connection4);
 
 	// schedule connection for shutdown at a later time
-	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_switchServiceAccess);
+	NULL != ServiceConnectionLock ? ServiceConnectionLock->enterSerialize(CMLOCKID_CmServiceAccess_switchServiceAccess) : 0;
 	ConnectionSwitch != NULL ? ConnectionSwitch->NextServiceConnection = ShutDownConnections : 0;
 	ShutDownConnections = ConnectionSwitch;
 	ConnectionSwitch = NULL;
-	ServiceConnectionLock.leaveSerialize();
+	NULL != ServiceConnectionLock ? ServiceConnectionLock->leaveSerialize() : 0;
 
 	// delete idle connections
 	deleteIdleConnections();
@@ -516,7 +518,7 @@ void CmServiceAccess::disconnect(CMCONN _ConnectionID)
 
 bool CmServiceAccess::shutdownConnections()
 {
-	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_shutdownConnections);
+	NULL != ServiceConnectionLock ? ServiceConnectionLock->enterSerialize(CMLOCKID_CmServiceAccess_shutdownConnections) : 0;
 
 	// schedule all connections for shutdown
 	CmServiceConnection *Connections[5] = { Connection1, Connection2, Connection3, Connection4, ConnectionSwitch };
@@ -527,7 +529,7 @@ bool CmServiceAccess::shutdownConnections()
 		}
 	}
 
-	ServiceConnectionLock.leaveSerialize();
+	NULL != ServiceConnectionLock ? ServiceConnectionLock->leaveSerialize() : 0;
 
 	// delete idle connections
 	return deleteIdleConnections();
@@ -535,7 +537,7 @@ bool CmServiceAccess::shutdownConnections()
 
 bool CmServiceAccess::deleteIdleConnections()
 {
-	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_deleteIdleConnections);
+	NULL != ServiceConnectionLock ? ServiceConnectionLock->enterSerialize(CMLOCKID_CmServiceAccess_deleteIdleConnections) : 0;
 
 	CmServiceConnection **Connection = &ShutDownConnections;
 	while (NULL != *Connection){
@@ -556,14 +558,14 @@ bool CmServiceAccess::deleteIdleConnections()
 	ConnectionRemaining = ConnectionCreated - ConnectionDeleted;
 	LOG8("ID=", ContactID, " Connections remaining/opened/switched: ", ConnectionRemaining, "/", OpenConnectionCreated, "/", SwitchConnectionCreated, Msg1, CMLOG_Network)
 
-	ServiceConnectionLock.leaveSerialize();
+		NULL != ServiceConnectionLock ? ServiceConnectionLock->leaveSerialize() : 0;
 
 	return true;
 }
 
 bool CmServiceAccess::deleteConnections()
 {
-	ServiceConnectionLock.enterSerialize(CMLOCKID_CmServiceAccess_deleteConnections);
+	NULL != ServiceConnectionLock ? ServiceConnectionLock->enterSerialize(CMLOCKID_CmServiceAccess_deleteConnections) : 0;
 
 	// delete remaining connections
 	CmServiceConnection **Connection = &ShutDownConnections;
@@ -576,7 +578,7 @@ bool CmServiceAccess::deleteConnections()
 		ConnectionRemaining = ConnectionCreated - ConnectionDeleted;
 	}
 
-	ServiceConnectionLock.leaveSerialize();
+	NULL != ServiceConnectionLock ? ServiceConnectionLock->leaveSerialize() : 0;
 
 	return true;
 }

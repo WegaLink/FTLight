@@ -38,7 +38,7 @@ SOFTWARE.
 //
 PROVIDER_CmBots::PROVIDER_CmBots()
 // Initialize PROVIDER UURI (=functionality) for a 'CmBots' root UURI
-: CmPlugNode(UURI_PROVIDER_CmBots, UURI_CmBots)
+: CmPlugNode(UURI_PROVIDER_CmBots)
 {
 	// initialize workspace parameters
 	Pro = NULL;
@@ -259,7 +259,7 @@ BOT_CmBots::~BOT_CmBots()
 //
 SERVICE_CmBots::SERVICE_CmBots()
 // Initialize SERVICE UURI (=interface) for a 'CmBots' root UURI
-: CmPlugNode(UURI_SERVICE_CmBots, UURI_CmBots)
+: CmPlugNode(UURI_SERVICE_CmBots)
 {
 	// Initialize
 	LocalProvider = NULL;
@@ -399,8 +399,10 @@ bool SERVICE_CmBots::clearLogLevel()
 }
 CmString& SERVICE_CmBots::setBotName(CmString _BotName)
 {
+	// tbd: it is intended to sync ServiceUURI with ProviderUURI but this breaks the config initialization
+	//CmPlugNode::ServiceUURI = Provider().getUURI().getText();
+
 	// store service UURI and bot name in the SERVICE plugnode
-	CmPlugNode::ServiceUURI = Provider().getUURI().getText();
 	CmPlugNode::setBotName(_BotName);
 
 	return CmPlugNode::getBotUURI();

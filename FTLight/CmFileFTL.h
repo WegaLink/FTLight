@@ -345,7 +345,7 @@ class BOT_CmFileFTL : public SERVICE_CmFileFTL, public CmValueINI
 {
 public:
 	BOT_CmFileFTL(const int8 *_Init);
-	~BOT_CmFileFTL();
+	virtual ~BOT_CmFileFTL();
 };
 
 //============================================================================
@@ -356,7 +356,7 @@ class PROVIDER_CmFileFTL : public CmPlugNode
 {
 public:
 	PROVIDER_CmFileFTL();
-	~PROVIDER_CmFileFTL();
+	virtual ~PROVIDER_CmFileFTL();
 
 	//------Bot-test------------------------------------------------PROVIDER----
 

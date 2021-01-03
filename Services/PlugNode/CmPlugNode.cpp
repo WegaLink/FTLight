@@ -37,6 +37,7 @@ using namespace Cosmos;
 
 // ContactPlugNode: a PlugNode known to others for logging in to a local network
 CmPlugNode *ContactPlugNode = NULL;
+CmParallelFTL* ServiceConnectionLock = NULL;
 int64 LocalContactID = 0;
 
 // TEST
@@ -83,14 +84,19 @@ CmPlugNode::~CmPlugNode()
   // Remove ContactPlugNode if this PlugNode represents the contact
   if( this==ContactPlugNode )
   {
+		// delete all remaining connections
+		deleteConnections();
+
+		// release service connection lock
+		CmString Memory;
+		Memory.releaseMemory<CmParallelFTL>(ServiceConnectionLock, 1, isCmParallel);
+
     ContactPlugNode = NULL;
 		LocalContactID = 0;
 
     // Close Windows sockets and free all resources
     WSACleanup();
 
-		// delete all remaining connections
-		deleteConnections();
   }
 
   // ToDo: Assign a new ContactPlugNode (if needed)
@@ -372,6 +378,10 @@ void CmPlugNode::initPlugNode(const CmPlugNode& _PlugNode)
   {
     ContactPlugNode = this;
 		setContactID(ContactID);
+
+		// initialize service connection lock
+		CmString Memory;
+		ServiceConnectionLock = Memory.allocateMemory<CmParallelFTL>(1, isCmParallel);
 
     // Initialize socket subsystem
     WORD wVersionRequested = MAKEWORD(2,2);

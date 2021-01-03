@@ -44,7 +44,7 @@ SOFTWARE.
 //
 PROVIDER_AppCm::PROVIDER_AppCm()
 // Initialize PROVIDER UURI (=functionality) for a 'AppCm' root UURI
-: CmPlugNode(UURI_PROVIDER_AppCm, UURI_AppCm)
+: CmPlugNode(UURI_PROVIDER_AppCm)
 {
 	// initialize CmValueINI arrays
 	CmValueINI::setDefaultInfoFTL(pro.UURI, getReturn());
@@ -185,6 +185,7 @@ bool PROVIDER_AppCm::drawTouch()
 	PhaseRemote += "°";
 	// modules
 	Bot1 += pro.Bot1.getBotUURI();
+	Bot2 += pro.Bot2.getBotUURI();
 
 	// position/font
 	float Top = pro.TouchChart.dyn().Height;
@@ -196,6 +197,7 @@ bool PROVIDER_AppCm::drawTouch()
 	pro.TouchChart.dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= Space), PhaseRemote, FontSize);
 	Top -= Space;
 	pro.TouchChart.dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= Space), Bot1, FontSize);
+	pro.TouchChart.dyn().Text.setChartText(TextCount, CmPoint2D(Left, Top -= Space), Bot2, FontSize);
 
 	// enable drawing
 	pro.TouchChart.dyn().Init.setDrawingEnabled(true);
@@ -493,7 +495,7 @@ CmUURI& PROVIDER_AppCm::getUURI()
 //
 SERVICE_AppCm::SERVICE_AppCm()
 // Initialize SERVICE UURI (=interface) for a 'AppCm' root UURI
-: CmPlugNode(UURI_SERVICE_AppCm, UURI_AppCm)
+: CmPlugNode(UURI_SERVICE_AppCm)
 {
 	// Initialize
 	LocalProvider = NULL;
